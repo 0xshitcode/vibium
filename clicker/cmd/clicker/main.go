@@ -18,20 +18,24 @@ var version = "0.1.0"
 
 // Global flags
 var (
-	headed bool
-	delay  int
+	headed    bool
+	waitOpen  int
+	waitClose int
 )
 
-// waitAndClose handles the delay flag before closing the browser.
-// If delay > 0, waits that many seconds.
-// If delay == 0 and headed, waits for user to press Enter.
+// doWaitOpen waits for page to load if --wait-open is set.
+func doWaitOpen() {
+	if waitOpen > 0 {
+		fmt.Printf("Waiting %d seconds for page to load...\n", waitOpen)
+		time.Sleep(time.Duration(waitOpen) * time.Second)
+	}
+}
+
+// waitAndClose handles the --wait-close flag before closing the browser.
 func waitAndClose(launchResult *browser.LaunchResult) {
-	if headed && delay == 0 {
-		fmt.Println("\nBrowser is open. Press Enter to close...")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
-	} else if delay > 0 {
-		fmt.Printf("\nKeeping browser open for %d seconds...\n", delay)
-		time.Sleep(time.Duration(delay) * time.Second)
+	if waitClose > 0 {
+		fmt.Printf("\nKeeping browser open for %d seconds...\n", waitClose)
+		time.Sleep(time.Duration(waitClose) * time.Second)
 	}
 	launchResult.Close()
 }
@@ -50,7 +54,8 @@ func main() {
 
 	// Add global flags for browser commands
 	rootCmd.PersistentFlags().BoolVar(&headed, "headed", false, "Show browser window (not headless)")
-	rootCmd.PersistentFlags().IntVar(&delay, "delay", 0, "Seconds to keep browser open after command (0 = wait for user to close)")
+	rootCmd.PersistentFlags().IntVar(&waitOpen, "wait-open", 0, "Seconds to wait after navigation for page to load")
+	rootCmd.PersistentFlags().IntVar(&waitClose, "wait-close", 0, "Seconds to keep browser open before closing (0 with --headed = wait for Enter)")
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -282,6 +287,8 @@ func main() {
 				os.Exit(1)
 			}
 
+			doWaitOpen()
+
 			fmt.Println("Capturing screenshot...")
 			base64Data, err := client.CaptureScreenshot("")
 			if err != nil {
@@ -343,6 +350,8 @@ func main() {
 				os.Exit(1)
 			}
 
+			doWaitOpen()
+
 			fmt.Printf("Evaluating: %s\n", expression)
 			result, err := client.Evaluate("", expression)
 			if err != nil {
@@ -388,6 +397,8 @@ func main() {
 				fmt.Fprintf(os.Stderr, "Error navigating: %v\n", err)
 				os.Exit(1)
 			}
+
+			doWaitOpen()
 
 			fmt.Printf("Finding element: %s\n", selector)
 			info, err := client.FindElement("", selector)
@@ -435,6 +446,8 @@ func main() {
 				fmt.Fprintf(os.Stderr, "Error navigating: %v\n", err)
 				os.Exit(1)
 			}
+
+			doWaitOpen()
 
 			fmt.Printf("Clicking element: %s\n", selector)
 			err = client.ClickElement("", selector)
@@ -493,6 +506,8 @@ func main() {
 				fmt.Fprintf(os.Stderr, "Error navigating: %v\n", err)
 				os.Exit(1)
 			}
+
+			doWaitOpen()
 
 			fmt.Printf("Typing into element: %s\n", selector)
 			err = client.TypeIntoElement("", selector, text)
