@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"syscall"
 	"time"
 
 	"github.com/vibium/clicker/internal/paths"
@@ -78,8 +79,9 @@ func Launch(opts LaunchOptions) (*LaunchResult, error) {
 		}
 	}
 
-	// Start chromedriver
+	// Start chromedriver as a process group leader so we can kill all children
 	cmd := exec.Command(chromedriverPath, fmt.Sprintf("--port=%d", port))
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("failed to start chromedriver: %w", err)
 	}
@@ -210,17 +212,26 @@ func createSession(baseURL, chromePath string, headless bool) (string, string, e
 
 // Close terminates a chromedriver session and process.
 func (r *LaunchResult) Close() error {
-	// Delete session
+	// Delete session first (tells chromedriver to quit Chrome gracefully)
 	if r.SessionID != "" && r.Port > 0 {
 		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("http://localhost:%d/session/%s", r.Port, r.SessionID), nil)
 		if req != nil {
 			http.DefaultClient.Do(req)
 		}
+		// Give Chrome a moment to quit gracefully
+		time.Sleep(100 * time.Millisecond)
 	}
 
-	// Kill chromedriver
+	// Kill the entire process group (chromedriver + all child processes including Chrome)
 	if r.ChromedriverCmd != nil && r.ChromedriverCmd.Process != nil {
-		process.KillBrowser(r.ChromedriverCmd)
+		pgid, err := syscall.Getpgid(r.ChromedriverCmd.Process.Pid)
+		if err == nil {
+			syscall.Kill(-pgid, syscall.SIGKILL)
+		} else {
+			// Fallback to killing just the process
+			r.ChromedriverCmd.Process.Kill()
+		}
+		process.Untrack(r.ChromedriverCmd)
 	}
 
 	return nil
