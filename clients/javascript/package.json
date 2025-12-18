@@ -20,7 +20,11 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/ws": "^8.18.1",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
   }
 }
