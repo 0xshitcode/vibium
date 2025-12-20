@@ -31,7 +31,7 @@ Vibium is browser automation infrastructure built for AI agents. A single Go bin
                │                     │         │                     │
                │  ┌───────────────┐  │         │                     │
                │  │  MCP Server   │  │         │   Chrome Browser    │
-               │  └───────┬───────┘  │         │                     │
+               │  └───────▲───────┘  │         │                     │
                │          │          │  BiDi   │                     │
                │  ┌───────▼───────┐  │◄───────►│                     │
                │  │  BiDi Proxy   │  │WebSocket│                     │
