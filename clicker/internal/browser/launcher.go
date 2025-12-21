@@ -279,23 +279,121 @@ func (r *LaunchResult) Close() error {
 	if r.SessionID != "" && r.Port > 0 {
 		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("http://localhost:%d/session/%s", r.Port, r.SessionID), nil)
 		if req != nil {
-			http.DefaultClient.Do(req)
+			client := &http.Client{Timeout: 5 * time.Second}
+			client.Do(req)
 		}
 		// Give Chrome a moment to quit gracefully
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
 
-	// Kill the entire process group (chromedriver + all child processes including Chrome)
+	// Kill chromedriver and all its descendants
 	if r.ChromedriverCmd != nil && r.ChromedriverCmd.Process != nil {
-		pgid, err := syscall.Getpgid(r.ChromedriverCmd.Process.Pid)
-		if err == nil {
-			syscall.Kill(-pgid, syscall.SIGKILL)
-		} else {
-			// Fallback to killing just the process
-			r.ChromedriverCmd.Process.Kill()
-		}
+		pid := r.ChromedriverCmd.Process.Pid
+
+		// Kill the entire process tree (chromedriver + Chrome + all helpers)
+		killProcessTree(pid)
+
+		// Wait for chromedriver to exit
+		r.ChromedriverCmd.Wait()
+
 		process.Untrack(r.ChromedriverCmd)
 	}
 
 	return nil
+}
+
+// killProcessTree kills a process and all its descendants.
+func killProcessTree(pid int) {
+	// First, find all descendant PIDs while parent relationships still exist
+	descendants := getDescendants(pid)
+
+	// Kill descendants first (deepest children first)
+	for i := len(descendants) - 1; i >= 0; i-- {
+		syscall.Kill(descendants[i], syscall.SIGKILL)
+	}
+
+	// Kill the root process
+	syscall.Kill(pid, syscall.SIGKILL)
+
+	// Wait a moment for processes to die
+	time.Sleep(100 * time.Millisecond)
+
+	// Kill any orphaned Chrome processes that escaped
+	// (Chrome helpers sometimes get reparented to init before we can kill them)
+	killOrphanedChromeProcesses()
+}
+
+// getDescendants returns all descendant PIDs of a process (recursive).
+func getDescendants(pid int) []int {
+	var descendants []int
+
+	// Use pgrep to find direct children
+	cmd := exec.Command("pgrep", "-P", fmt.Sprintf("%d", pid))
+	output, err := cmd.Output()
+	if err != nil {
+		return descendants
+	}
+
+	// Parse child PIDs
+	lines := bytes.Split(bytes.TrimSpace(output), []byte("\n"))
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+		var childPid int
+		if _, err := fmt.Sscanf(string(line), "%d", &childPid); err == nil {
+			descendants = append(descendants, childPid)
+			// Recursively get grandchildren
+			descendants = append(descendants, getDescendants(childPid)...)
+		}
+	}
+
+	return descendants
+}
+
+// killOrphanedChromeProcesses finds and kills Chrome/chromedriver processes
+// that have been orphaned (reparented to init/launchd).
+func killOrphanedChromeProcesses() {
+	// Kill orphaned chromedriver and Chrome for Testing processes
+	patterns := []string{"chromedriver", "Chrome for Testing"}
+
+	for _, pattern := range patterns {
+		cmd := exec.Command("pgrep", "-f", pattern)
+		output, err := cmd.Output()
+		if err != nil {
+			continue
+		}
+
+		lines := bytes.Split(bytes.TrimSpace(output), []byte("\n"))
+		for _, line := range lines {
+			if len(line) == 0 {
+				continue
+			}
+			var pid int
+			if _, err := fmt.Sscanf(string(line), "%d", &pid); err == nil {
+				// Check if this process's parent is 1 (orphaned)
+				ppidCmd := exec.Command("ps", "-o", "ppid=", "-p", fmt.Sprintf("%d", pid))
+				ppidOut, err := ppidCmd.Output()
+				if err != nil {
+					continue
+				}
+				var ppid int
+				if _, err := fmt.Sscanf(string(bytes.TrimSpace(ppidOut)), "%d", &ppid); err == nil {
+					if ppid == 1 {
+						// This is an orphaned process - kill it and its children
+						killProcessTreeByPid(pid)
+					}
+				}
+			}
+		}
+	}
+}
+
+// killProcessTreeByPid kills a process and all its descendants by PID.
+func killProcessTreeByPid(pid int) {
+	descendants := getDescendants(pid)
+	for i := len(descendants) - 1; i >= 0; i-- {
+		syscall.Kill(descendants[i], syscall.SIGKILL)
+	}
+	syscall.Kill(pid, syscall.SIGKILL)
 }
