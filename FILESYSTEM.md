@@ -1,14 +1,21 @@
 # Vibium V1 File System Layout
 
+> **Note:** This document is actively maintained until V1 ships, then archived as a historical reference.
+
 ```
 vibium/
 │
 ├── README.md
 ├── LICENSE
+├── CLAUDE.md                             # Claude Code instructions
+├── CONTRIBUTING.md                       # Development guide
+├── Makefile                              # Build & test targets
 ├── V1-ROADMAP.md
 ├── V2-ROADMAP.md
+├── FILESYSTEM.md
 ├── .gitignore
 ├── package.json                          # npm workspaces root
+├── package-lock.json
 │
 ├── clicker/                              # Go Core Engine
 │   ├── go.mod
@@ -19,9 +26,6 @@ vibium/
 │   │       └── main.go                   # CLI entry point (cobra)
 │   │
 │   ├── internal/
-│   │   ├── config/
-│   │   │   └── config.go                 # Configuration management
-│   │   │
 │   │   ├── bidi/                         # WebDriver BiDi Protocol
 │   │   │   ├── connection.go             # WebSocket connection (gorilla)
 │   │   │   ├── protocol.go               # BiDi message types
@@ -40,6 +44,7 @@ vibium/
 │   │   │   └── installer.go              # Chrome for Testing downloader
 │   │   │
 │   │   ├── features/                     # High-level Features
+│   │   │   ├── actionability.go          # Actionability checks
 │   │   │   └── autowait.go               # Auto-waiting logic
 │   │   │
 │   │   ├── mcp/                          # MCP Server Interface
@@ -50,22 +55,11 @@ vibium/
 │   │   ├── paths/
 │   │   │   └── paths.go                  # Platform-specific paths
 │   │   │
-│   │   ├── process/
-│   │   │   └── process.go                # Process management
-│   │   │
-│   │   └── errors/
-│   │       └── errors.go                 # Custom error types
-│   │
-│   ├── pkg/                              # Public packages (if needed)
-│   │   └── version/
-│   │       └── version.go
+│   │   └── process/
+│   │       └── process.go                # Process management
 │   │
 │   └── bin/                              # Build output (gitignored)
-│       ├── clicker-linux-amd64
-│       ├── clicker-linux-arm64
-│       ├── clicker-darwin-amd64
-│       ├── clicker-darwin-arm64
-│       └── clicker-windows-amd64.exe
+│       └── clicker
 │
 ├── clients/
 │   │
@@ -73,42 +67,67 @@ vibium/
 │       ├── package.json
 │       ├── tsconfig.json
 │       ├── tsup.config.ts                # Build config
-│       ├── vitest.config.ts              # Test config
 │       │
-│       ├── src/
-│       │   ├── index.ts                  # Main exports
-│       │   ├── browser.ts                # browser.launch() entry (async)
-│       │   ├── vibe.ts                   # Vibe class (async API)
-│       │   ├── element.ts                # Element class (async)
-│       │   │
-│       │   ├── sync/                     # Sync API Wrappers
-│       │   │   ├── index.ts              # Sync exports
-│       │   │   ├── bridge.ts             # Worker thread bridge (Atomics.wait)
-│       │   │   ├── worker.ts             # Worker thread (runs async ops)
-│       │   │   ├── browser.ts            # browserSync.launch()
-│       │   │   ├── vibe.ts               # VibeSync class
-│       │   │   └── element.ts            # ElementSync class
-│       │   │
-│       │   ├── clicker/                  # Clicker Binary Management
-│       │   │   ├── binary.ts             # Binary path resolution
-│       │   │   ├── process.ts            # Spawn & manage clicker
-│       │   │   └── platform.ts           # Platform detection
-│       │   │
-│       │   ├── bidi/                     # BiDi Client
-│       │   │   ├── connection.ts         # WebSocket connection
-│       │   │   ├── client.ts             # BiDi command client
-│       │   │   └── types.ts              # BiDi type definitions
-│       │   │
-│       │   └── utils/
-│       │       ├── errors.ts             # Error classes
-│       │       └── timeout.ts            # Promise timeout wrapper
-│       │
-│       └── test/
-│           ├── browser.test.ts
-│           ├── vibe.test.ts
-│           └── element.test.ts
+│       └── src/
+│           ├── index.ts                  # Main exports
+│           ├── browser.ts                # browser.launch() entry (async)
+│           ├── vibe.ts                   # Vibe class (async API)
+│           ├── element.ts                # Element class (async)
+│           │
+│           ├── sync/                     # Sync API Wrappers
+│           │   ├── index.ts              # Sync exports
+│           │   ├── bridge.ts             # Worker thread bridge (Atomics.wait)
+│           │   ├── worker.ts             # Worker thread (runs async ops)
+│           │   ├── browser.ts            # browserSync.launch()
+│           │   ├── vibe.ts               # VibeSync class
+│           │   └── element.ts            # ElementSync class
+│           │
+│           ├── clicker/                  # Clicker Binary Management
+│           │   ├── index.ts              # Clicker exports
+│           │   ├── binary.ts             # Binary path resolution
+│           │   ├── process.ts            # Spawn & manage clicker
+│           │   └── platform.ts           # Platform detection
+│           │
+│           └── bidi/                     # BiDi Client
+│               ├── index.ts              # BiDi exports
+│               ├── connection.ts         # WebSocket connection
+│               ├── client.ts             # BiDi command client
+│               └── types.ts              # BiDi type definitions
 │
-├── packages/                             # Platform-specific npm packages
+├── tests/                                # Test suites
+│   ├── TODO.md
+│   ├── cli/                              # CLI tests
+│   │   ├── navigation.test.js
+│   │   ├── elements.test.js
+│   │   ├── actionability.test.js
+│   │   └── process.test.js
+│   ├── js/                               # JS library tests
+│   │   ├── async-api.test.js
+│   │   ├── sync-api.test.js
+│   │   ├── auto-wait.test.js
+│   │   ├── headless-headed.test.js
+│   │   └── process.test.js
+│   └── mcp/                              # MCP server tests
+│       └── server.test.js
+│
+├── docs/
+│   ├── local-dev-setup.md                # VM development setup
+│   ├── explanation/
+│   │   ├── actionability.md              # How actionability works
+│   │   └── process-cleanup.md            # Process management docs
+│   ├── reference/
+│   │   └── WebDriver-Bidi-Spec.md        # BiDi protocol reference
+│   ├── tutorials/
+│   │   └── claude-code-mcp-setup.md      # MCP setup guide
+│   └── updates/                          # Development updates
+│       ├── 2025-12-11-v1-announcement.md
+│       ├── 2025-12-16-week1-progress.md
+│       ├── 2025-12-17-halfway-there.md
+│       ├── 2025-12-19-day8-elements-sync.md
+│       ├── 2025-12-19-day9-actionability.md
+│       └── 2025-12-20-day10-mcp.md
+│
+├── packages/                             # Platform-specific npm packages (Day 12-13)
 │   ├── vibium/                           # Main package (re-exports)
 │   │   ├── package.json
 │   │   ├── bin.js                        # npx entry → execs clicker mcp
@@ -124,13 +143,7 @@ vibium/
 │   └── vibium-win32-x64/
 │       └── package.json
 │
-├── docs/
-│   ├── getting-started.md
-│   ├── api.md
-│   └── updates/
-│       └── 2025-12-11-v1-announcement.txt
-│
-├── examples/
+├── examples/                             # Example projects (Day 14)
 │   ├── async-basic/
 │   │   ├── package.json
 │   │   └── index.ts
@@ -140,7 +153,7 @@ vibium/
 │   └── claude-code-mcp/
 │       └── README.md
 │
-└── scripts/
+└── scripts/                              # Build scripts (Day 12)
     ├── build-clicker.sh                  # Go cross-compile
     └── package-npm.sh                    # Package for npm publish
 ```

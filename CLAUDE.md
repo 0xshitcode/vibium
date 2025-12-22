@@ -9,7 +9,7 @@ Browser automation for AI agents and humans.
 - V2-ROADMAP.md — Deferred features (don't build these yet)
 
 ## Reference Docs
-- WebDriver-Bidi-Spec.md — Defines the BiDirectional WebDriver Protocol, a mechanism for remote control of user agents
+- docs/reference/WebDriver-Bidi-Spec.md — Defines the BiDirectional WebDriver Protocol, a mechanism for remote control of user agents
 
 ## Current Goal
 

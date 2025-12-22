@@ -35,10 +35,15 @@ make build-go    # Build clicker binary
 make build-js    # Build JS client
 make deps        # Install npm dependencies
 make serve       # Start proxy server on :9515
+make test        # Run all tests (CLI + JS + MCP)
+make test-cli    # Run CLI tests only
+make test-js     # Run JS library tests only
+make test-mcp    # Run MCP server tests only
+make double-tap  # Kill zombie Chrome/chromedriver processes
 make clean       # Clean binaries and JS dist
 make clean-cache # Clean cached Chrome for Testing
 make clean-all   # Clean everything
-make help        # Show all targets
+make help        # Show this help
 ```
 
 ---
