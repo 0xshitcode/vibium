@@ -4,21 +4,13 @@
 
 - npm account with access to `vibium` package
 - Member of `@vibium` org on npm
-- All tests passing (`make test`)
+- Logged in (`npm login`)
 
-## First-time Setup
-
-```bash
-# Login to npm
-npm login
-
-# Ensure @vibium org packages are public by default
-npm access public @vibium
-```
-
-## Build & Package
+## Build, Test & Package
 
 ```bash
+make build
+make test
 make package
 ```
 
@@ -33,7 +25,7 @@ cd packages/vibium && npm pack
 # Test in a fresh directory
 mkdir /tmp/vibium-test && cd /tmp/vibium-test
 npm init -y
-npm install /path/to/vibium/packages/vibium/vibium-0.1.0.tgz
+npm install /path/to/vibium/packages/vibium/vibium-*.tgz
 
 # Verify it works
 node -e "const { browser } = require('vibium'); console.log('OK')"

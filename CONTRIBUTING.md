@@ -24,9 +24,10 @@ If you prefer to develop directly on your host machine, follow the steps below.
 git clone https://github.com/VibiumDev/vibium.git
 cd vibium
 make
+make install-browser
 ```
 
-This installs npm dependencies and builds both clicker and the JS client.
+This installs npm dependencies, builds clicker and the JS client, and downloads Chrome for Testing.
 
 ---
 
@@ -42,11 +43,14 @@ make test        # Run all tests (CLI + JS + MCP)
 make test-cli    # Run CLI tests only
 make test-js     # Run JS library tests only
 make test-mcp    # Run MCP server tests only
-make double-tap  # Kill zombie Chrome/chromedriver processes
-make clean       # Clean binaries and JS dist
-make clean-cache # Clean cached Chrome for Testing
-make clean-all   # Clean everything
-make help        # Show this help
+make double-tap       # Kill zombie Chrome/chromedriver processes
+make install-browser  # Download Chrome for Testing
+make package          # Build npm packages for publishing
+make clean            # Clean binaries and JS dist
+make clean-packages   # Clean built npm packages
+make clean-cache      # Clean cached Chrome for Testing
+make clean-all        # Clean everything
+make help             # Show this help
 ```
 
 ---
@@ -60,9 +64,41 @@ cd clients/javascript && node --experimental-repl-await
 ```
 
 ```javascript
+// Option 1: require (REPL-friendly)
+const { browserSync } = require('./dist')
+
+// Option 2: dynamic import (REPL with --experimental-repl-await)
 const { browser } = await import('./dist/index.mjs')
-const vibe = await browser.launch({ headless: false })
+
+// Option 3: static import (in .mjs files)
+import { browser } from './dist/index.mjs'
+```
+
+Sync example:
+
+```javascript
+const { browserSync } = require('./dist')
+const vibe = browserSync.launch()
+vibe.go('https://example.com')
+
+const el = vibe.find('h1')
+console.log(el.text())
+
+const shot = vibe.screenshot()
+require('fs').writeFileSync('test.png', shot)
+vibe.quit()
+```
+
+Async example:
+
+```javascript
+const { browser } = await import('./dist/index.mjs')
+const vibe = await browser.launch()
 await vibe.go('https://example.com')
+
+const el = await vibe.find('h1')
+console.log(await el.text())
+
 const shot = await vibe.screenshot()
 require('fs').writeFileSync('test.png', shot)
 await vibe.quit()

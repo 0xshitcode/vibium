@@ -70,36 +70,47 @@ A single Go binary (~10MB) that does everything:
 
 ### JS/TS Client
 
-Two flavors: async (Promise-based) and sync (blocking).
+```javascript
+// Option 1: require (REPL-friendly)
+const { browserSync } = require('vibium')
 
-**Async API:**
-```typescript
-import { browser } from "vibium";
+// Option 2: dynamic import (REPL with --experimental-repl-await)
+const { browser } = await import('vibium')
 
-const vibe = await browser.launch();
-await vibe.go("https://example.com");
-
-const el = await vibe.find("button.submit");
-await el.click();
-await el.type("hello");
-
-const png = await vibe.screenshot();
-await vibe.quit();
+// Option 3: static import (in .mjs or .ts files)
+import { browser, browserSync } from 'vibium'
 ```
 
 **Sync API:**
-```typescript
-import { browserSync } from "vibium";
+```javascript
+const fs = require('fs')
+const { browserSync } = require('vibium')
 
-const vibe = browserSync.launch();
-vibe.go("https://example.com");
+const vibe = browserSync.launch()
+vibe.go('https://example.com')
 
-const el = vibe.find("button.submit");
-el.click();
-el.type("hello");
+const png = vibe.screenshot()
+fs.writeFileSync('screenshot.png', png)
 
-const png = vibe.screenshot();
-vibe.quit();
+const link = vibe.find('a')
+link.click()
+vibe.quit()
+```
+
+**Async API:**
+```javascript
+const fs = await import('fs/promises')
+const { browser } = await import('vibium')
+
+const vibe = await browser.launch()
+await vibe.go('https://example.com')
+
+const png = await vibe.screenshot()
+await fs.writeFile('screenshot.png', png)
+
+const link = await vibe.find('a')
+await link.click()
+await vibe.quit()
 ```
 
 ---
