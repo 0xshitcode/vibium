@@ -213,6 +213,8 @@ See [V2-ROADMAP.md](V2-ROADMAP.md) for planned features:
 
 ## Updates
 
+- [2025-12-22: Day 12 - Published to npm](docs/updates/2025-12-22-day12-npm-publish.md)
+- [2025-12-21: Day 11 - Polish & Error Handling](docs/updates/2025-12-21-day11-polish.md)
 - [2025-12-20: Day 10 - MCP Server](docs/updates/2025-12-20-day10-mcp.md)
 - [2025-12-19: Day 9 - Actionability](docs/updates/2025-12-19-day9-actionability.md)
 - [2025-12-19: Day 8 - Elements & Sync API](docs/updates/2025-12-19-day8-elements-sync.md)
