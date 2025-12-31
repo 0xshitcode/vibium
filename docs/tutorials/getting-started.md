@@ -168,6 +168,9 @@ async function main() {
 main()
 ```
 
+**Use Python instead:**
+See [Getting Started (Python)](getting-started-python.md) for the Python version.
+
 **Add to Claude Code** (let AI control the browser):
 ```bash
 claude mcp add vibium -- npx -y vibium

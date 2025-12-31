@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vibium-darwin-arm64"
+version = "0.1.0"
+description = "Vibium clicker binary for macOS ARM64"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+    { name = "Jason Huggins", email = "hugs@vibium.com" }
+]
+
+[project.urls]
+Homepage = "https://vibium.com"
+Repository = "https://github.com/VibiumDev/vibium"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vibium_darwin_arm64"]
+include = ["src/vibium_darwin_arm64/bin/*"]

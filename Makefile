@@ -1,4 +1,4 @@
-.PHONY: all build build-go build-js build-all-platforms package package-platforms package-main install-browser deps clean clean-bin clean-js clean-packages clean-cache clean-all serve test test-cli test-js test-mcp double-tap help
+.PHONY: all build build-go build-js build-all-platforms package package-platforms package-main package-python-platforms package-python install-browser deps clean clean-bin clean-js clean-packages clean-python-packages clean-cache clean-all serve test test-cli test-js test-mcp test-python double-tap help
 
 # Default target
 all: build
@@ -46,7 +46,29 @@ package-main: build-js
 
 # Build all packages for npm publishing
 package: package-platforms package-main
-	@echo "All packages ready for publishing!"
+	@echo "All npm packages ready for publishing!"
+
+# Copy binaries to Python platform packages
+package-python-platforms: build-all-platforms
+	@echo "Copying binaries to Python platform packages..."
+	cp clicker/bin/clicker-linux-amd64 packages/python/vibium_linux_x64/src/vibium_linux_x64/bin/clicker
+	cp clicker/bin/clicker-linux-arm64 packages/python/vibium_linux_arm64/src/vibium_linux_arm64/bin/clicker
+	cp clicker/bin/clicker-darwin-amd64 packages/python/vibium_darwin_x64/src/vibium_darwin_x64/bin/clicker
+	cp clicker/bin/clicker-darwin-arm64 packages/python/vibium_darwin_arm64/src/vibium_darwin_arm64/bin/clicker
+	cp clicker/bin/clicker-windows-amd64.exe packages/python/vibium_win32_x64/src/vibium_win32_x64/bin/clicker.exe
+	@echo "Done. Python platform packages ready."
+
+# Build all Python packages (wheels)
+package-python: package-python-platforms
+	@echo "Building Python wheels..."
+	cd packages/python/vibium_darwin_arm64 && pip wheel . -w dist --no-deps
+	cd packages/python/vibium_darwin_x64 && pip wheel . -w dist --no-deps
+	cd packages/python/vibium_linux_x64 && pip wheel . -w dist --no-deps
+	cd packages/python/vibium_linux_arm64 && pip wheel . -w dist --no-deps
+	cd packages/python/vibium_win32_x64 && pip wheel . -w dist --no-deps
+	cd clients/python && pip wheel . -w dist --no-deps
+	@echo "Done. Python wheels:"
+	@ls -lh packages/python/*/dist/*.whl clients/python/dist/*.whl 2>/dev/null || true
 
 # Install Chrome for Testing (required for tests)
 install-browser: build-go
@@ -83,6 +105,15 @@ test-mcp: build-go
 	@echo "━━━ MCP Server Tests ━━━"
 	node --test --test-concurrency=1 tests/mcp/server.test.js
 
+# Run Python client tests
+test-python: package-python-platforms
+	@echo "━━━ Python Client Tests ━━━"
+	@cd clients/python && \
+		if [ ! -d ".venv" ]; then python3 -m venv .venv; fi && \
+		. .venv/bin/activate && \
+		pip install -q -e ../../packages/python/vibium_darwin_arm64 -e . && \
+		python tests/test_basic.py
+
 # Kill zombie Chrome and chromedriver processes
 double-tap:
 	@echo "Killing zombie processes..."
@@ -99,18 +130,23 @@ clean-bin:
 clean-js:
 	rm -rf clients/javascript/dist
 
-# Clean built packages
+# Clean built npm packages
 clean-packages:
 	rm -f packages/*/bin/clicker packages/*/bin/clicker.exe
 	rm -rf packages/vibium/dist
+
+# Clean built Python packages
+clean-python-packages:
+	rm -f packages/python/*/src/*/bin/clicker packages/python/*/src/*/bin/clicker.exe
+	rm -rf packages/python/*/dist clients/python/dist
 
 # Clean cached Chrome for Testing
 clean-cache:
 	rm -rf ~/Library/Caches/vibium/chrome-for-testing
 	rm -rf ~/.cache/vibium/chrome-for-testing
 
-# Clean everything (binaries + JS dist + packages + cache)
-clean-all: clean-bin clean-js clean-packages clean-cache
+# Clean everything (binaries + JS dist + packages + Python + cache)
+clean-all: clean-bin clean-js clean-packages clean-python-packages clean-cache
 
 # Alias for clean-bin + clean-js
 clean: clean-bin clean-js
@@ -118,23 +154,40 @@ clean: clean-bin clean-js
 # Show available targets
 help:
 	@echo "Available targets:"
+	@echo ""
+	@echo "Build:"
 	@echo "  make                    - Build everything (default)"
 	@echo "  make build-go           - Build clicker binary"
 	@echo "  make build-js           - Build JS client"
 	@echo "  make build-all-platforms - Cross-compile clicker for all platforms"
-	@echo "  make package            - Build all packages for npm publishing"
+	@echo ""
+	@echo "Package (npm):"
+	@echo "  make package            - Build all npm packages"
 	@echo "  make package-platforms  - Build platform packages only"
 	@echo "  make package-main       - Build main package only"
-	@echo "  make install-browser    - Install Chrome for Testing"
-	@echo "  make deps               - Install npm dependencies"
-	@echo "  make serve              - Start proxy server on :9515"
+	@echo ""
+	@echo "Package (Python):"
+	@echo "  make package-python     - Build all Python wheels"
+	@echo "  make package-python-platforms - Copy binaries to Python packages"
+	@echo ""
+	@echo "Test:"
 	@echo "  make test               - Run all tests (CLI + JS + MCP)"
 	@echo "  make test-cli           - Run CLI tests only"
 	@echo "  make test-js            - Run JS library tests only"
 	@echo "  make test-mcp           - Run MCP server tests only"
+	@echo "  make test-python        - Run Python client tests"
+	@echo ""
+	@echo "Other:"
+	@echo "  make install-browser    - Install Chrome for Testing"
+	@echo "  make deps               - Install npm dependencies"
+	@echo "  make serve              - Start proxy server on :9515"
 	@echo "  make double-tap         - Kill zombie Chrome/chromedriver processes"
+	@echo ""
+	@echo "Clean:"
 	@echo "  make clean              - Clean binaries and JS dist"
-	@echo "  make clean-packages     - Clean built packages"
+	@echo "  make clean-packages     - Clean built npm packages"
+	@echo "  make clean-python-packages - Clean built Python packages"
 	@echo "  make clean-cache        - Clean cached Chrome for Testing"
 	@echo "  make clean-all          - Clean everything"
+	@echo ""
 	@echo "  make help               - Show this help"
