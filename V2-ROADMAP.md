@@ -63,37 +63,16 @@ Vibium's architecture follows the classic robotics control loop:
 
 ---
 
-## Python Client
+## Python Client ✅
 
-**What:** `pip install vibium` with sync and async APIs.
+**Status:** shipped 2025-12-31
 
-**Why deferred:** JS/TS is the primary language for MCP and Claude Code. Python adds maintenance burden without clear V1 need.
-
-**API:**
-```python
-# Async
-from vibium import browser
-
-async def main():
-    vibe = await browser.launch()
-    await vibe.go("https://example.com")
-    el = await vibe.find("a")
-    await el.click()
-    await vibe.quit()
-
-# Sync
-from vibium import browser_sync
-
-vibe = browser_sync.launch()
-vibe.go("https://example.com")
-el = vibe.find("a")
-el.click()
-vibe.quit()
+```bash
+pip install vibium
 ```
 
-**When to build:** When there's demand from Python-based agent frameworks (LangChain, etc.)
-
-**Estimated effort:** 1 week (Clicker already does the work)
+- [getting started (Python)](docs/tutorials/getting-started-python.md)
+- [release update](docs/updates/2025-12-31-python-client.md)
 
 ---
 
@@ -242,7 +221,7 @@ const el = await vibe.find("the blue submit button");
 
 Based on likely user demand:
 
-1. **Python client** — Broad demand, low effort
+1. ~~**Python client**~~ ✅ shipped
 2. **Video recording** — Debugging value, moderate effort
 3. **Network tracing** — DevTools parity
 4. **Cortex** — If agents need persistent memory
