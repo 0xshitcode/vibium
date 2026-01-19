@@ -41,6 +41,10 @@ package-js: build-go-all build-js
 	cp clicker/bin/clicker-darwin-amd64 packages/darwin-x64/bin/clicker
 	cp clicker/bin/clicker-darwin-arm64 packages/darwin-arm64/bin/clicker
 	cp clicker/bin/clicker-windows-amd64.exe packages/win32-x64/bin/clicker.exe
+	@echo "Copying LICENSE and NOTICE to npm packages..."
+	@for pkg in packages/linux-x64 packages/linux-arm64 packages/darwin-x64 packages/darwin-arm64 packages/win32-x64 packages/vibium clients/javascript; do \
+		cp LICENSE NOTICE "$$pkg/"; \
+	done
 	@echo "Building main vibium package..."
 	mkdir -p packages/vibium/dist
 	cp -r clients/javascript/dist/* packages/vibium/dist/
@@ -55,6 +59,10 @@ package-python: build-go-all
 	cp clicker/bin/clicker-darwin-amd64 packages/python/vibium_darwin_x64/src/vibium_darwin_x64/bin/clicker
 	cp clicker/bin/clicker-darwin-arm64 packages/python/vibium_darwin_arm64/src/vibium_darwin_arm64/bin/clicker
 	cp clicker/bin/clicker-windows-amd64.exe packages/python/vibium_win32_x64/src/vibium_win32_x64/bin/clicker.exe
+	@echo "Copying LICENSE and NOTICE to Python packages..."
+	@for pkg in packages/python/vibium_linux_x64 packages/python/vibium_linux_arm64 packages/python/vibium_darwin_x64 packages/python/vibium_darwin_arm64 packages/python/vibium_win32_x64 clients/python; do \
+		cp LICENSE NOTICE "$$pkg/"; \
+	done
 	@echo "Building Python wheels..."
 	@if [ ! -d ".venv-publish" ]; then \
 		echo "Creating .venv-publish..."; \
@@ -136,12 +144,14 @@ clean-js:
 clean-npm-packages:
 	rm -f packages/*/bin/clicker packages/*/bin/clicker.exe
 	rm -rf packages/vibium/dist
+	rm -f packages/*/LICENSE packages/*/NOTICE clients/javascript/LICENSE clients/javascript/NOTICE
 
 # Clean Python packages (venv, dist, platform binaries)
 clean-python-packages:
 	rm -rf clients/python/.venv clients/python/dist
 	rm -f packages/python/*/src/*/bin/clicker packages/python/*/src/*/bin/clicker.exe
 	rm -rf packages/python/*/dist
+	rm -f packages/python/*/LICENSE packages/python/*/NOTICE clients/python/LICENSE clients/python/NOTICE
 
 # Clean all built packages (npm + Python)
 clean-packages: clean-npm-packages clean-python-packages

@@ -18,5 +18,5 @@
   "os": ["win32"],
   "cpu": ["x64"],
   "main": "bin/clicker.exe",
-  "files": ["bin"]
+  "files": ["bin", "LICENSE", "NOTICE"]
 }

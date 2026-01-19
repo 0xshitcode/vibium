@@ -18,5 +18,5 @@
   "os": ["darwin"],
   "cpu": ["arm64"],
   "main": "bin/clicker",
-  "files": ["bin"]
+  "files": ["bin", "LICENSE", "NOTICE"]
 }
