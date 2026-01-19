@@ -47,19 +47,12 @@ make build-js           # Build JS client
 make build-all-platforms # Cross-compile clicker for all platforms
 ```
 
-### Package (npm)
+### Package
 
 ```bash
-make package            # Build all npm packages
-make package-platforms  # Build platform packages only
-make package-main       # Build main package only
-```
-
-### Package (Python)
-
-```bash
-make package-python           # Build all Python wheels
-make package-python-platforms # Copy binaries to Python packages
+make package            # Build all packages (npm + Python)
+make package-js         # Build npm packages only
+make package-python     # Build Python wheels only
 ```
 
 ### Test

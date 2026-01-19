@@ -15,14 +15,6 @@ Six packages total:
 | `vibium-linux-arm64` | Linux ARM64 binary |
 | `vibium-win32-x64` | Windows x64 binary |
 
-## Prerequisites
-
-```bash
-python3 -m venv .venv-publish
-source .venv-publish/bin/activate
-pip install twine
-```
-
 ## Build Wheels
 
 ```bash
@@ -32,7 +24,8 @@ make package-python
 This:
 1. Cross-compiles clicker for all platforms
 2. Copies binaries to platform packages
-3. Builds wheels for all 6 packages
+3. Creates `.venv-publish` with `twine` if it doesn't exist
+4. Builds wheels for all 6 packages
 
 Output:
 ```
@@ -47,6 +40,9 @@ clients/python/dist/vibium-0.1.0-py3-none-any.whl
 ## Test on TestPyPI (Recommended First Time)
 
 ```bash
+# Activate the venv (twine is installed here)
+source .venv-publish/bin/activate
+
 # Upload to TestPyPI
 twine upload --repository testpypi packages/python/*/dist/*.whl
 twine upload --repository testpypi clients/python/dist/*.whl

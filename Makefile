@@ -1,4 +1,4 @@
-.PHONY: all build build-go build-js build-all-platforms package package-platforms package-main package-python-platforms package-python install-browser deps clean clean-bin clean-js clean-packages clean-python clean-cache clean-all serve test test-cli test-js test-mcp test-python double-tap help
+.PHONY: all build build-go build-js build-all-platforms package package-js package-python install-browser deps clean clean-bin clean-js clean-packages clean-python clean-cache clean-all serve test test-cli test-js test-mcp test-python double-tap help
 
 # Default target
 all: build
@@ -26,8 +26,11 @@ build-all-platforms:
 	@echo "Done. Built binaries:"
 	@ls -lh clicker/bin/clicker-*
 
-# Copy binaries to platform packages for npm publishing
-package-platforms: build-all-platforms
+# Build all packages (npm + Python)
+package: package-js package-python
+
+# Build all npm packages for publishing
+package-js: build-all-platforms build-js
 	@echo "Copying binaries to platform packages..."
 	mkdir -p packages/linux-x64/bin packages/linux-arm64/bin packages/darwin-x64/bin packages/darwin-arm64/bin packages/win32-x64/bin
 	cp clicker/bin/clicker-linux-amd64 packages/linux-x64/bin/clicker
@@ -35,22 +38,13 @@ package-platforms: build-all-platforms
 	cp clicker/bin/clicker-darwin-amd64 packages/darwin-x64/bin/clicker
 	cp clicker/bin/clicker-darwin-arm64 packages/darwin-arm64/bin/clicker
 	cp clicker/bin/clicker-windows-amd64.exe packages/win32-x64/bin/clicker.exe
-	@echo "Done. Package binaries:"
-	@ls -lh packages/*/bin/clicker*
-
-# Build main vibium package (copy JS dist)
-package-main: build-js
 	@echo "Building main vibium package..."
 	mkdir -p packages/vibium/dist
 	cp -r clients/javascript/dist/* packages/vibium/dist/
-	@echo "Done. Main package ready at packages/vibium/"
-
-# Build all packages for npm publishing
-package: package-platforms package-main
 	@echo "All npm packages ready for publishing!"
 
-# Copy binaries to Python platform packages
-package-python-platforms: build-all-platforms
+# Build all Python packages (wheels)
+package-python: build-all-platforms
 	@echo "Copying binaries to Python platform packages..."
 	mkdir -p packages/python/vibium_linux_x64/src/vibium_linux_x64/bin packages/python/vibium_linux_arm64/src/vibium_linux_arm64/bin packages/python/vibium_darwin_x64/src/vibium_darwin_x64/bin packages/python/vibium_darwin_arm64/src/vibium_darwin_arm64/bin packages/python/vibium_win32_x64/src/vibium_win32_x64/bin
 	cp clicker/bin/clicker-linux-amd64 packages/python/vibium_linux_x64/src/vibium_linux_x64/bin/clicker
@@ -58,17 +52,20 @@ package-python-platforms: build-all-platforms
 	cp clicker/bin/clicker-darwin-amd64 packages/python/vibium_darwin_x64/src/vibium_darwin_x64/bin/clicker
 	cp clicker/bin/clicker-darwin-arm64 packages/python/vibium_darwin_arm64/src/vibium_darwin_arm64/bin/clicker
 	cp clicker/bin/clicker-windows-amd64.exe packages/python/vibium_win32_x64/src/vibium_win32_x64/bin/clicker.exe
-	@echo "Done. Python platform packages ready."
-
-# Build all Python packages (wheels)
-package-python: package-python-platforms
 	@echo "Building Python wheels..."
-	cd packages/python/vibium_darwin_arm64 && pip wheel . -w dist --no-deps
-	cd packages/python/vibium_darwin_x64 && pip wheel . -w dist --no-deps
-	cd packages/python/vibium_linux_x64 && pip wheel . -w dist --no-deps
-	cd packages/python/vibium_linux_arm64 && pip wheel . -w dist --no-deps
-	cd packages/python/vibium_win32_x64 && pip wheel . -w dist --no-deps
-	cd clients/python && pip wheel . -w dist --no-deps
+	@if [ ! -d ".venv-publish" ]; then \
+		echo "Creating .venv-publish..."; \
+		python3 -m venv .venv-publish && \
+		. .venv-publish/bin/activate && \
+		pip install -q twine; \
+	fi
+	@. .venv-publish/bin/activate && \
+		cd packages/python/vibium_darwin_arm64 && pip wheel . -w dist --no-deps && \
+		cd ../vibium_darwin_x64 && pip wheel . -w dist --no-deps && \
+		cd ../vibium_linux_x64 && pip wheel . -w dist --no-deps && \
+		cd ../vibium_linux_arm64 && pip wheel . -w dist --no-deps && \
+		cd ../vibium_win32_x64 && pip wheel . -w dist --no-deps && \
+		cd ../../../clients/python && pip wheel . -w dist --no-deps
 	@echo "Done. Python wheels:"
 	@ls -lh packages/python/*/dist/*.whl clients/python/dist/*.whl 2>/dev/null || true
 
@@ -108,7 +105,7 @@ test-mcp: build-go
 	node --test --test-concurrency=1 tests/mcp/server.test.js
 
 # Run Python client tests
-test-python: package-python-platforms
+test-python: package-python
 	@echo "━━━ Python Client Tests ━━━"
 	@cd clients/python && \
 		if [ ! -d ".venv" ]; then python3 -m venv .venv; fi && \
@@ -164,14 +161,10 @@ help:
 	@echo "  make build-js           - Build JS client"
 	@echo "  make build-all-platforms - Cross-compile clicker for all platforms"
 	@echo ""
-	@echo "Package (npm):"
-	@echo "  make package            - Build all npm packages"
-	@echo "  make package-platforms  - Build platform packages only"
-	@echo "  make package-main       - Build main package only"
-	@echo ""
-	@echo "Package (Python):"
-	@echo "  make package-python     - Build all Python wheels"
-	@echo "  make package-python-platforms - Copy binaries to Python packages"
+	@echo "Package:"
+	@echo "  make package            - Build all packages (npm + Python)"
+	@echo "  make package-js         - Build npm packages only"
+	@echo "  make package-python     - Build Python wheels only"
 	@echo ""
 	@echo "Test:"
 	@echo "  make test               - Run all tests (CLI + JS + MCP)"
