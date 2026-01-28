@@ -61,6 +61,31 @@ class Vibe:
         )
         return base64.b64decode(result["data"])
 
+    async def evaluate(self, expression: str):
+        """Execute JavaScript in the page context.
+
+        Args:
+            expression: JavaScript expression to evaluate.
+
+        Returns:
+            The result of the JavaScript evaluation.
+        """
+        context = await self._get_context()
+        result = await self._client.send(
+            "script.evaluate",
+            {
+                "expression": expression,
+                "target": {"context": context},
+                "awaitPromise": True,
+                "resultOwnership": "none",
+            },
+        )
+
+        if result.get("type") == "exception":
+            raise RuntimeError(f"Script exception: {result.get('result')}")
+
+        return result.get("result", {}).get("value")
+
     async def find(self, selector: str, timeout: Optional[int] = None) -> Element:
         """Find an element by CSS selector.
 
