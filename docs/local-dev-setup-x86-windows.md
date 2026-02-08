@@ -55,12 +55,23 @@ Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
 Start-Service sshd
 Set-Service -Name sshd -StartupType Automatic
 
-# Allow SSH through firewall
+# Allow SSH through Windows Firewall
 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
 
 # Get IP address
 ipconfig
 ```
+
+### Create External Virtual Switch (for LAN access to VM)
+
+By default, Hyper-V's "Default Switch" gives VMs a NAT IP only reachable from the host. To access the VM from other machines on your network (e.g., your Mac), create an External Switch:
+
+1. Open Hyper-V Manager
+2. Right panel → Virtual Switch Manager
+3. Select **External** → Create Virtual Switch
+4. Name: `External Switch`
+5. Under "External network", select your physical network adapter
+6. Apply/OK (this will briefly drop the host's network connection)
 
 ---
 
@@ -78,7 +89,7 @@ Download Windows 11 ISO from Microsoft: https://www.microsoft.com/software-downl
    - Name: `vibium-dev`
    - Generation: Generation 2
    - Memory: 4GB minimum (8GB recommended), enable Dynamic Memory
-   - Network: Default Switch
+   - Network: External Switch (created above)
    - Virtual Hard Disk: 64GB minimum
 4. Install Options: select Windows ISO
 5. Finish and start installation
@@ -86,13 +97,16 @@ Download Windows 11 ISO from Microsoft: https://www.microsoft.com/software-downl
 ### VM Settings (before first boot)
 
 Right-click VM → Settings:
+- Security: Enable Trusted Platform Module (required for Windows 11)
 - Security: Disable Secure Boot (or set to "Microsoft UEFI Certificate Authority")
 - Processor: 4 virtual processors
 - Checkpoints: Enable (for snapshots)
 
 ### Install Windows in VM
 
-Standard Windows 11 install. Use a local account for simplicity.
+1. Start the VM and **immediately click inside the console window**
+2. Spam the spacebar — you need to hit a key while the "Press any key to boot from CD or DVD..." prompt is visible (it disappears quickly)
+3. Standard Windows 11 install. Use a local account for simplicity.
 
 ---
 
@@ -102,27 +116,15 @@ Standard Windows 11 install. Use a local account for simplicity.
 
 ---
 
-## Install Windows Terminal
-
-Open Microsoft Store, search for "Windows Terminal", install it.
-
----
-
-## Enable Developer Mode
-
-Settings → Privacy & Security → For developers → Developer Mode: On
-
----
-
 ## Enable OpenSSH Server
 
 ```powershell
-# Run as Administrator
+# Run in PowerShell as Administrator
 Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
 Start-Service sshd
 Set-Service -Name sshd -StartupType Automatic
 
-# Allow SSH through firewall
+# Allow SSH through Windows Firewall
 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
 
 # Set PowerShell as default SSH shell
@@ -235,17 +237,19 @@ gh auth login
 
 ---
 
-## Connect from Host to VM
+## Connect to VM
 
-### Via Terminal (on host)
+With the External Switch, the VM has a LAN IP accessible from any machine on your network.
 
-```powershell
+### Via Terminal
+
+```sh
 ssh yourusername@<vm-ip>
 ```
 
-### Via Zed (on host)
+### Via Zed
 
-1. Install Zed: `winget install Zed.Zed` or download from https://zed.dev
+1. Install Zed: https://zed.dev
 2. Open Zed
 3. `Ctrl+Shift+P` → "remote projects: Open Remote Project"
 4. Enter: `yourusername@<vm-ip>`
