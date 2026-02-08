@@ -120,6 +120,10 @@ vibe.go('https://example.com')
 const el = vibe.find('h1')
 console.log(el.text())
 
+// Execute JavaScript
+const title = vibe.evaluate('document.title')
+console.log('Page title:', title)
+
 const shot = vibe.screenshot()
 require('fs').writeFileSync('test.png', shot)
 vibe.quit()
@@ -134,6 +138,10 @@ await vibe.go('https://example.com')
 
 const el = await vibe.find('h1')
 console.log(await el.text())
+
+// Execute JavaScript
+const title = await vibe.evaluate('document.title')
+console.log('Page title:', title)
 
 const shot = await vibe.screenshot()
 require('fs').writeFileSync('test.png', shot)
@@ -174,6 +182,10 @@ vibe.go("https://example.com")
 el = vibe.find("h1")
 print(el.text())
 
+# Execute JavaScript
+title = vibe.evaluate("document.title")
+print(f"Page title: {title}")
+
 with open("screenshot.png", "wb") as f:
     f.write(vibe.screenshot())
 
@@ -192,6 +204,10 @@ async def main():
 
     el = await vibe.find("h1")
     print(await el.text())
+
+    # Execute JavaScript
+    title = await vibe.evaluate("document.title")
+    print(f"Page title: {title}")
 
     with open("screenshot.png", "wb") as f:
         f.write(await vibe.screenshot())
@@ -273,6 +289,7 @@ Clicker includes an MCP (Model Context Protocol) server for AI agent integration
 | `browser_type` | Type into an element |
 | `browser_screenshot` | Capture the page |
 | `browser_find` | Find element info |
+| `browser_evaluate` | Execute JavaScript to extract data or inspect page state |
 | `browser_quit` | Close the browser |
 
 ### Running the MCP Server

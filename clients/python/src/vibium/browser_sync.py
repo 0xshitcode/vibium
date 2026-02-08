@@ -88,6 +88,10 @@ class VibeSync:
         """Capture a screenshot of the viewport."""
         return self._loop_thread.run(self._vibe.screenshot())
 
+    def evaluate(self, expression: str):
+        """Execute JavaScript in the page context."""
+        return self._loop_thread.run(self._vibe.evaluate(expression))
+
     def find(self, selector: str, timeout: Optional[int] = None) -> ElementSync:
         """Find an element by CSS selector."""
         element = self._loop_thread.run(self._vibe.find(selector, timeout))

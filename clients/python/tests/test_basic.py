@@ -18,6 +18,18 @@ def test_sync_api():
         png = vibe.screenshot()
         assert len(png) > 1000, f"Screenshot too small: {len(png)} bytes"
 
+        # Test evaluate
+        title = vibe.evaluate("document.title")
+        assert title == "Example Domain", f"Expected 'Example Domain', got: {title}"
+
+        # Test evaluate with number
+        result = vibe.evaluate("2 + 2")
+        assert result == 4, f"Expected 4, got: {result}"
+
+        # Test evaluate with object access
+        url = vibe.evaluate("window.location.href")
+        assert "example.com" in url, f"Expected URL with 'example.com', got: {url}"
+
         # Test click
         link.click()
     finally:
