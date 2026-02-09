@@ -9,9 +9,11 @@ all: build
 # Build everything (Go + JS)
 build: build-go build-js
 
-# Build clicker binary
+# Build clicker binary + vibe-check symlink
 build-go: deps
+	cp skills/vibe-check/SKILL.md clicker/cmd/clicker/SKILL.md
 	cd clicker && go build -ldflags="-X main.version=$(VERSION)" -o bin/clicker ./cmd/clicker
+	ln -sf clicker clicker/bin/vibe-check
 
 # Build JS client
 build-js: deps

@@ -20,17 +20,26 @@ describe('CLI: Input Tools', () => {
     assert.match(result, /Hovered/, 'Should confirm hover');
   });
 
-  test('skill command outputs markdown', () => {
+  test('skill --stdout outputs markdown', () => {
+    const result = execSync(`${CLICKER} skill --stdout`, {
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.match(result, /# Vibium Browser Automation/, 'Should have title');
+    assert.match(result, /vibe-check navigate/, 'Should list navigate');
+    assert.match(result, /vibe-check click/, 'Should list click');
+    assert.match(result, /vibe-check screenshot/, 'Should list screenshot');
+    assert.match(result, /vibe-check tab-new/, 'Should list new tab');
+    assert.match(result, /vibe-check scroll/, 'Should list scroll');
+    assert.match(result, /vibe-check keys/, 'Should list keys');
+  });
+
+  test('skill command installs to ~/.claude/skills/', () => {
     const result = execSync(`${CLICKER} skill`, {
       encoding: 'utf-8',
       timeout: 5000,
     });
-    assert.match(result, /# Vibium Clicker/, 'Should have title');
-    assert.match(result, /navigate/, 'Should list navigate');
-    assert.match(result, /click/, 'Should list click');
-    assert.match(result, /screenshot/, 'Should list screenshot');
-    assert.match(result, /tab-new/, 'Should list tab-new');
-    assert.match(result, /scroll/, 'Should list scroll');
-    assert.match(result, /keys/, 'Should list keys');
+    assert.match(result, /Installed Vibium skill/, 'Should confirm install');
+    assert.match(result, /SKILL\.md/, 'Should mention SKILL.md');
   });
 });

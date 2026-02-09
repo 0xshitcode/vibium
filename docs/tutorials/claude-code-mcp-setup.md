@@ -151,16 +151,31 @@ Claude will use the Vibium MCP tools:
 3. `browser_screenshot` - Capture the page
 4. `browser_quit` - Close the browser
 
-## Available MCP Tools
+## Available MCP Tools (22)
 
 | Tool | Description |
 |------|-------------|
 | `browser_launch` | Start a browser session (visible by default) |
 | `browser_navigate` | Navigate to a URL |
+| `browser_get_url` | Get current page URL |
+| `browser_get_title` | Get current page title |
+| `browser_get_text` | Get text content (page or element) |
+| `browser_get_html` | Get HTML content (innerHTML or outerHTML) |
+| `browser_find` | Find element info (tag, text, bounding box) |
+| `browser_find_all` | Find all matching elements |
+| `browser_evaluate` | Execute JavaScript in the browser |
+| `browser_screenshot` | Capture a screenshot |
 | `browser_click` | Click an element by CSS selector |
 | `browser_type` | Type text into an element |
-| `browser_screenshot` | Capture a screenshot (optionally save to file with `--screenshot-dir`) |
-| `browser_find` | Find element info (tag, text, bounding box) |
+| `browser_hover` | Hover over an element |
+| `browser_scroll` | Scroll page or element |
+| `browser_keys` | Press key or key combination |
+| `browser_select` | Select dropdown option |
+| `browser_wait` | Wait for element state |
+| `browser_new_tab` | Open a new tab |
+| `browser_list_tabs` | List all open tabs |
+| `browser_switch_tab` | Switch to tab by index or URL |
+| `browser_close_tab` | Close a tab |
 | `browser_quit` | Close the browser session |
 
 ## Troubleshooting

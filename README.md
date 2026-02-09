@@ -1,86 +1,116 @@
 # Vibium
 
-**Browser automation without the drama.**
+**Browser automation for AI agents and humans.**
 
-Vibium is browser automation infrastructure built for AI agents. A single binary handles browser lifecycle, [WebDriver BiDi](docs/explanation/webdriver-bidi.md) protocol, and exposes an MCP server — so Claude Code (or any MCP client) can drive a browser with zero setup. Works great for AI agents, test automation, and anything else that needs a browser.
+Vibium gives AI agents a browser. Install the `vibe-check` skill and your agent can navigate pages, fill forms, click buttons, and take screenshots — all through simple CLI commands. Also available as an MCP server and as JS/TS and Python client libraries.
 
 **New here?** [Getting Started Tutorial](docs/tutorials/getting-started.md) — zero to hello world in 5 minutes.
 
----
-
 ## Why Vibium?
 
-**Browser automation for AI agents and humans.**
-
-- **AI-native.** MCP server built-in. Claude Code can drive a browser out of the box.
+- **AI-native.** Install as a skill — your agent learns 22 browser commands instantly.
 - **Zero config.** One install, browser downloads automatically, visible by default.
 - **Standards-based.** Built on [WebDriver BiDi](docs/explanation/webdriver-bidi.md), not proprietary protocols controlled by large corporations.
 - **Lightweight.** Single ~10MB binary. No runtime dependencies.
-
----
-
-## Quick Reference
-
-| Component | Purpose | Interface |
-|-----------|---------|-----------|
-| **Clicker** | Browser automation, BiDi proxy, MCP server | CLI / stdio / WebSocket :9515 |
-| **JS Client** | Developer-facing API | npm package |
-| **Python Client** | Developer-facing API | pip package |
+- **Flexible.** Use as a CLI skill, MCP server, or JS/Python library.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         LLM / Agent                         │
-│          (Claude Code, Codex, Gemini, Local Models)         │
-└─────────────────────────────────────────────────────────────┘
-                      ▲
-                      │ MCP Protocol (stdio)
-                      ▼
-           ┌─────────────────────┐         
-           │   Vibium Clicker    │
-           │                     │
-           │  ┌───────────────┐  │
-           │  │  MCP Server   │  │
-           │  └───────▲───────┘  │         ┌──────────────────┐
-           │          │          │         │                  │
-           │  ┌───────▼───────┐  │WebSocket│                  │
-           │  │  BiDi Proxy   │  │◄───────►│  Chrome Browser  │
-           │  └───────────────┘  │  BiDi   │                  │
-           │                     │         │                  │
-           └─────────────────────┘         └──────────────────┘
-                      ▲
-                      │ WebSocket BiDi :9515
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Client Libraries                        │
-│         npm install vibium  ·  pip install vibium           │
-│                                                             │
-│    ┌─────────────────┐               ┌─────────────────┐    │
-│    │ Async API       │               │    Sync API     │    │
-│    │ await vibe.go() │               │    vibe.go()    │    │
-│    │                 │               │                 │    │
-│    └─────────────────┘               └─────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│             LLM / Agent              │
+│  (Claude Code, Codex, Gemini, etc.)  │
+└──────────────────────────────────────┘
+          ▲                  ▲
+          │ MCP (stdio)      │ CLI (Bash)
+          ▼                  ▼
+┌──────────────────────────────────┐
+│         Vibium binary            │
+│       (vibe-check CLI)           │
+│                                  │
+│  ┌───────────┐ ┌──────────────┐  │
+│  │ MCP Server│ │ CLI Commands │  │
+│  └─────┬─────┘ └──────┬───────┘  │        ┌──────────────────┐
+│        └──────▲───────┘          │        │                  │
+│               │                  │        │                  │
+│        ┌──────▼───────┐          │  BiDi  │  Chrome Browser  │
+│        │  BiDi Proxy  │          │◄──────►│                  │
+│        └──────────────┘          │        │                  │
+└──────────────────────────────────┘        └──────────────────┘
+          ▲
+          │ WebSocket BiDi :9515
+          ▼
+┌──────────────────────────────────────┐
+│          Client Libraries            │
+│          (js/ts | python)            │
+│                                      │
+│  ┌─────────────────┐ ┌────────────┐  │
+│  │   Async API     │ │  Sync API  │  │
+│  │ await vibe.go() │ │  vibe.go() │  │
+│  └─────────────────┘ └────────────┘  │
+└──────────────────────────────────────┘
 ```
+
+See [internals](docs/explanation/internals.md) for component details.
 
 ---
 
-## Components
+## Agent Setup
 
-### Clicker
+One command to add browser control to your AI coding assistant:
 
-A single Go binary (~10MB) that does everything:
+```bash
+npx skills add https://github.com/VibiumDev/vibium --skill vibe-check
+```
 
-- **Browser Management:** Detects/launches Chrome with BiDi enabled
-- **BiDi Proxy:** WebSocket server that routes commands to browser
-- **MCP Server:** stdio interface for LLM agents
-- **Auto-Wait:** Polls for elements before interacting
-- **Screenshots:** Viewport capture as PNG
+That's it. Chrome downloads automatically during install.
 
-**Design goal:** The binary is invisible. JS developers just `npm install vibium` and it works.
+### CLI Quick Reference
+
+```bash
+vibe-check navigate https://example.com   # go to a page
+vibe-check text                            # get page text
+vibe-check click "a"                       # click an element
+vibe-check type "input" "hello"            # type into a field
+vibe-check screenshot -o page.png          # capture screenshot
+vibe-check eval "document.title"           # run JavaScript
+```
+
+Full command list: [SKILL.md](skills/vibe-check/SKILL.md)
+
+**Alternative: MCP server** (for structured tool use instead of CLI):
+
+```bash
+claude mcp add vibium -- npx -y vibium    # Claude Code
+gemini mcp add vibium npx -y vibium       # Gemini CLI
+```
+
+See detailed setup guides: [MCP Server](docs/tutorials/claude-code-mcp-setup.md) | [Gemini CLI](docs/tutorials/gemini-cli-mcp-setup.md)
+
+---
+
+## Language APIs
+
+```bash
+npm install vibium   # JavaScript/TypeScript
+pip install vibium   # Python
+```
+
+This automatically:
+1. Installs the Vibium binary for your platform
+2. Downloads Chrome for Testing + chromedriver to platform cache:
+   - Linux: `~/.cache/vibium/`
+   - macOS: `~/Library/Caches/vibium/`
+   - Windows: `%LOCALAPPDATA%\vibium\`
+
+No manual browser setup required.
+
+**Skip browser download** (if you manage browsers separately):
+```bash
+VIBIUM_SKIP_BROWSER_DOWNLOAD=1 npm install vibium
+```
 
 ### JS/TS Client
 
@@ -171,60 +201,6 @@ asyncio.run(main())
 
 ---
 
-## For Agents
-
-One command to add browser control to your AI coding assistant:
-
-**Claude Code:**
-```bash
-claude mcp add vibium -- npx -y vibium
-```
-
-**Gemini CLI:**
-```bash
-gemini mcp add vibium npx -y vibium
-```
-
-That's it. Chrome downloads automatically on first use.
-
-See detailed setup guides: [Claude Code](docs/tutorials/claude-code-mcp-setup.md) | [Gemini CLI](docs/tutorials/gemini-cli-mcp-setup.md)
-
-| Tool | Description |
-|------|-------------|
-| `browser_launch` | Start browser (visible by default) |
-| `browser_navigate` | Go to URL |
-| `browser_find` | Find element by CSS selector |
-| `browser_evaluate` | Execute JavaScript to extract data, query DOM, or inspect page state |
-| `browser_click` | Click an element |
-| `browser_type` | Type text into an element |
-| `browser_screenshot` | Capture viewport (base64 or save to file with `--screenshot-dir`) |
-| `browser_quit` | Close browser |
-
----
-
-## For Humans
-
-```bash
-npm install vibium   # JavaScript/TypeScript
-pip install vibium   # Python
-```
-
-This automatically:
-1. Installs the Clicker binary for your platform
-2. Downloads Chrome for Testing + chromedriver to platform cache:
-   - Linux: `~/.cache/vibium/`
-   - macOS: `~/Library/Caches/vibium/`
-   - Windows: `%LOCALAPPDATA%\vibium\`
-
-No manual browser setup required.
-
-**Skip browser download** (if you manage browsers separately):
-```bash
-VIBIUM_SKIP_BROWSER_DOWNLOAD=1 npm install vibium
-```
-
----
-
 ## Platform Support
 
 | Platform | Architecture | Status |
@@ -233,27 +209,6 @@ VIBIUM_SKIP_BROWSER_DOWNLOAD=1 npm install vibium
 | macOS | x64 (Intel) | ✅ Supported |
 | macOS | arm64 (Apple Silicon) | ✅ Supported |
 | Windows | x64 | ✅ Supported |
-
----
-
-## Quick Start
-
-**As a library:**
-```typescript
-import { browser } from "vibium";
-
-const vibe = await browser.launch();
-await vibe.go("https://example.com");
-const el = await vibe.find("a");
-await el.click();
-await vibe.quit();
-```
-
-**With Claude Code:**
-
-Once installed via `claude mcp add`, just ask Claude to browse:
-
-> "Go to example.com and click the first link"
 
 ---
 
@@ -273,20 +228,6 @@ See [V2-ROADMAP.md](V2-ROADMAP.md) for planned features:
 - Retina (recording extension)
 - Video recording
 - AI-powered locators
-
----
-
-## Updates
-
-- [2025-12-31: Python Client](docs/updates/2025-12-31-python-client.md)
-- [2025-12-22: Day 12 - Published to npm](docs/updates/2025-12-22-day12-npm-publish.md)
-- [2025-12-21: Day 11 - Polish & Error Handling](docs/updates/2025-12-21-day11-polish.md)
-- [2025-12-20: Day 10 - MCP Server](docs/updates/2025-12-20-day10-mcp.md)
-- [2025-12-19: Day 9 - Actionability](docs/updates/2025-12-19-day9-actionability.md)
-- [2025-12-19: Day 8 - Elements & Sync API](docs/updates/2025-12-19-day8-elements-sync.md)
-- [2025-12-17: Halfway There](docs/updates/2025-12-17-halfway-there.md)
-- [2025-12-16: Week 1 Progress](docs/updates/2025-12-16-week1-progress.md)
-- [2025-12-11: V1 Announcement](docs/updates/2025-12-11-v1-announcement.md)
 
 ---
 
