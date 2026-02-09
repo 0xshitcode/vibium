@@ -219,7 +219,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ## Roadmap
 
-V1 focuses on the core loop: browser control via MCP and JS client.
+V1 focuses on the core loop: browser control via CLI, MCP, and client libraries.
 
 See [V2-ROADMAP.md](V2-ROADMAP.md) for planned features:
 - Java client
