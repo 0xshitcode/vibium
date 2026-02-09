@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Find clicker binary from platform package and run it.
-// Default: `vibium` → `clicker mcp` (MCP server mode)
-// Known subcommands pass through directly.
+// `vibium` (no args) → `clicker` (shows help)
+// `vibium mcp` → `clicker mcp` (MCP server mode)
+// Unknown first arg → prepends `mcp` (e.g. `vibium --headless` → `clicker mcp --headless`)
 
 const { execFileSync } = require('child_process');
 const path = require('path');
@@ -35,9 +36,10 @@ function getClickerPath() {
 const clickerPath = getClickerPath();
 const userArgs = process.argv.slice(2);
 
-// If no args or first arg is not a known subcommand, default to 'mcp'
-const args = (userArgs.length === 0 || !KNOWN_SUBCOMMANDS.has(userArgs[0]))
+// If first arg is not a known subcommand, default to 'mcp'
+const args = (userArgs.length > 0 && !KNOWN_SUBCOMMANDS.has(userArgs[0]))
   ? ['mcp', ...userArgs]
   : userArgs;
 
-execFileSync(clickerPath, args, { stdio: 'inherit' });
+const binName = path.basename(process.argv[1] || 'vibe-check', path.extname(process.argv[1] || ''));
+execFileSync(clickerPath, args, { stdio: 'inherit', argv0: binName });

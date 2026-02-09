@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/vibium/clicker/internal/bidi"
@@ -17,7 +18,7 @@ func newVersionCmd() *cobra.Command {
 		Use:   "version",
 		Short: "Print the version number",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Clicker v%s\n", version)
+			fmt.Printf("%s v%s\n", filepath.Base(os.Args[0]), version)
 		},
 	}
 }

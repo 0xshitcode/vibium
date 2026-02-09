@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/vibium/clicker/internal/log"
@@ -25,8 +26,10 @@ func main() {
 	// Setup signal handler to cleanup on Ctrl+C
 	process.SetupSignalHandler()
 
+	progName := filepath.Base(os.Args[0])
+
 	rootCmd := &cobra.Command{
-		Use:   "clicker",
+		Use:   progName,
 		Short: "Browser automation for AI agents and humans",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Enable logging only if --verbose is used
@@ -86,7 +89,7 @@ func main() {
 	rootCmd.AddCommand(newSkillCmd())
 
 	rootCmd.Version = version
-	rootCmd.SetVersionTemplate("Clicker v{{.Version}}\n")
+	rootCmd.SetVersionTemplate(progName + " v{{.Version}}\n")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
