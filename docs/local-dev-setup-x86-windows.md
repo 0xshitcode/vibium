@@ -140,7 +140,7 @@ ipconfig
 
 ## Install Dev Tools (via winget)
 
-Windows 11 includes `winget` by default. Open PowerShell:
+Windows 11 includes `winget` by default. Open a regular PowerShell (not Administrator):
 
 ```powershell
 winget install Git.Git
