@@ -138,6 +138,16 @@ ipconfig
 
 ---
 
+## Allow PowerShell Scripts
+
+PowerShell blocks `.ps1` scripts by default, which breaks tools like `npm`. Run this once to allow scripts you install:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+---
+
 ## Install Dev Tools (via winget)
 
 Windows 11 includes `winget` by default. Open a regular PowerShell (not Administrator):
