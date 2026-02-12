@@ -201,6 +201,9 @@ Token settings:
 
 Permissions:
 - Contents: Read and write
+- Issues: Read and write
+- Metadata: Read-only (required, auto-selected)
+- Pull requests: Read and write
 - Everything else: No access
 
 Click "Generate token" and copy it (you won't see it again).
