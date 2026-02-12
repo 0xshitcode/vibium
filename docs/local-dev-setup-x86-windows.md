@@ -295,6 +295,20 @@ Windows has a 260-character path limit by default. Enable long paths:
 New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
 ```
 
+### PowerShell Emacs Keybindings (optional)
+
+If you're coming from Mac/Linux, PowerShell's default keybindings will feel wrong. This gives you familiar shortcuts (Ctrl+A, Ctrl+E, Ctrl+K, etc.):
+
+```powershell
+Set-PSReadLineOption -EditMode Emacs
+```
+
+To make it permanent, add it to your PowerShell profile:
+
+```powershell
+Add-Content $PROFILE "Set-PSReadLineOption -EditMode Emacs"
+```
+
 ### Windows Defender Exclusions
 
 Defender can slow down builds. Add exclusions:
