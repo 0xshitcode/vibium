@@ -61,7 +61,7 @@ See [internals](docs/explanation/internals.md) for component details.
 
 ```bash
 npm install -g vibium
-npx skills add https://github.com/VibiumDev/vibium --skill vibium
+npx skills add https://github.com/VibiumDev/vibium --skill vibe-check
 ```
 
 The first command installs Vibium and the `vibium` binary, and downloads Chrome. The second installs the skill to `{project}/.agents/skills/vibium`.
