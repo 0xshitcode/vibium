@@ -145,12 +145,54 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 
 	// Handle vibium: extension commands (per WebDriver BiDi spec for extensions)
 	switch cmd.Method {
+	// Element interaction commands
 	case "vibium:click":
 		go r.handleVibiumClick(session, cmd)
+		return
+	case "vibium:dblclick":
+		go r.handleVibiumDblclick(session, cmd)
+		return
+	case "vibium:fill":
+		go r.handleVibiumFill(session, cmd)
 		return
 	case "vibium:type":
 		go r.handleVibiumType(session, cmd)
 		return
+	case "vibium:press":
+		go r.handleVibiumPress(session, cmd)
+		return
+	case "vibium:clear":
+		go r.handleVibiumClear(session, cmd)
+		return
+	case "vibium:check":
+		go r.handleVibiumCheck(session, cmd)
+		return
+	case "vibium:uncheck":
+		go r.handleVibiumUncheck(session, cmd)
+		return
+	case "vibium:selectOption":
+		go r.handleVibiumSelectOption(session, cmd)
+		return
+	case "vibium:hover":
+		go r.handleVibiumHover(session, cmd)
+		return
+	case "vibium:focus":
+		go r.handleVibiumFocus(session, cmd)
+		return
+	case "vibium:dragTo":
+		go r.handleVibiumDragTo(session, cmd)
+		return
+	case "vibium:tap":
+		go r.handleVibiumTap(session, cmd)
+		return
+	case "vibium:scrollIntoView":
+		go r.handleVibiumScrollIntoView(session, cmd)
+		return
+	case "vibium:dispatchEvent":
+		go r.handleVibiumDispatchEvent(session, cmd)
+		return
+
+	// Element finding commands
 	case "vibium:find":
 		go r.handleVibiumFind(session, cmd)
 		return
@@ -221,148 +263,6 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 	if err := session.BidiConn.Send(msg); err != nil {
 		fmt.Printf("[router] Failed to send to browser for client %d: %v\n", client.ID, err)
 	}
-}
-
-// handleVibiumClick handles the vibium:click command with actionability checks.
-func (r *Router) handleVibiumClick(session *BrowserSession, cmd bidiCommand) {
-	selector, _ := cmd.Params["selector"].(string)
-	context, _ := cmd.Params["context"].(string)
-	timeoutMs, _ := cmd.Params["timeout"].(float64)
-
-	timeout := defaultTimeout
-	if timeoutMs > 0 {
-		timeout = time.Duration(timeoutMs) * time.Millisecond
-	}
-
-	// Get context if not provided
-	if context == "" {
-		ctx, err := r.getContext(session)
-		if err != nil {
-			r.sendError(session, cmd.ID, err)
-			return
-		}
-		context = ctx
-	}
-
-	// Wait for element and get its position
-	info, err := r.waitForElement(session, context, selector, timeout)
-	if err != nil {
-		r.sendError(session, cmd.ID, err)
-		return
-	}
-
-	// Perform the click at element center
-	x := int(info.Box.X + info.Box.Width/2)
-	y := int(info.Box.Y + info.Box.Height/2)
-
-	clickParams := map[string]interface{}{
-		"context": context,
-		"actions": []map[string]interface{}{
-			{
-				"type": "pointer",
-				"id":   "mouse",
-				"parameters": map[string]interface{}{
-					"pointerType": "mouse",
-				},
-				"actions": []map[string]interface{}{
-					{"type": "pointerMove", "x": x, "y": y, "duration": 0},
-					{"type": "pointerDown", "button": 0},
-					{"type": "pointerUp", "button": 0},
-				},
-			},
-		},
-	}
-
-	if _, err := r.sendInternalCommand(session, "input.performActions", clickParams); err != nil {
-		r.sendError(session, cmd.ID, err)
-		return
-	}
-
-	r.sendSuccess(session, cmd.ID, map[string]interface{}{"clicked": true})
-}
-
-// handleVibiumType handles the vibium:type command with actionability checks.
-func (r *Router) handleVibiumType(session *BrowserSession, cmd bidiCommand) {
-	selector, _ := cmd.Params["selector"].(string)
-	context, _ := cmd.Params["context"].(string)
-	text, _ := cmd.Params["text"].(string)
-	timeoutMs, _ := cmd.Params["timeout"].(float64)
-
-	timeout := defaultTimeout
-	if timeoutMs > 0 {
-		timeout = time.Duration(timeoutMs) * time.Millisecond
-	}
-
-	// Get context if not provided
-	if context == "" {
-		ctx, err := r.getContext(session)
-		if err != nil {
-			r.sendError(session, cmd.ID, err)
-			return
-		}
-		context = ctx
-	}
-
-	// Wait for element and get its position
-	info, err := r.waitForElement(session, context, selector, timeout)
-	if err != nil {
-		r.sendError(session, cmd.ID, err)
-		return
-	}
-
-	// Click to focus first
-	x := int(info.Box.X + info.Box.Width/2)
-	y := int(info.Box.Y + info.Box.Height/2)
-
-	clickParams := map[string]interface{}{
-		"context": context,
-		"actions": []map[string]interface{}{
-			{
-				"type": "pointer",
-				"id":   "mouse",
-				"parameters": map[string]interface{}{
-					"pointerType": "mouse",
-				},
-				"actions": []map[string]interface{}{
-					{"type": "pointerMove", "x": x, "y": y, "duration": 0},
-					{"type": "pointerDown", "button": 0},
-					{"type": "pointerUp", "button": 0},
-				},
-			},
-		},
-	}
-
-	if _, err := r.sendInternalCommand(session, "input.performActions", clickParams); err != nil {
-		r.sendError(session, cmd.ID, err)
-		return
-	}
-
-	// Build key actions for typing
-	keyActions := make([]map[string]interface{}, 0, len(text)*2)
-	for _, char := range text {
-		keyActions = append(keyActions,
-			map[string]interface{}{"type": "keyDown", "value": string(char)},
-			map[string]interface{}{"type": "keyUp", "value": string(char)},
-		)
-	}
-
-	typeParams := map[string]interface{}{
-		"context": context,
-		"actions": []map[string]interface{}{
-			{
-				"type":    "key",
-				"id":      "keyboard",
-				"actions": keyActions,
-			},
-		},
-	}
-
-	if _, err := r.sendInternalCommand(session, "input.performActions", typeParams); err != nil {
-		r.sendError(session, cmd.ID, err)
-		return
-	}
-
-	r.sendSuccess(session, cmd.ID, map[string]interface{}{"typed": true})
 }
 
 // getContext retrieves the first browsing context.

@@ -3,6 +3,7 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 // resolveContext extracts the "context" param or returns the first context from getTree.
@@ -69,4 +70,142 @@ func parseScriptResult(resp json.RawMessage) (string, error) {
 	}
 
 	return result.Result.Result.Value, nil
+}
+
+// elementParams holds extracted parameters for element resolution.
+type elementParams struct {
+	Selector    string
+	Index       int
+	HasIndex    bool
+	Scope       string
+	Role        string
+	Text        string
+	Label       string
+	Placeholder string
+	Alt         string
+	Title       string
+	Testid      string
+	Xpath       string
+	Context     string
+	Timeout     time.Duration
+}
+
+// extractElementParams extracts element parameters from command params.
+func extractElementParams(params map[string]interface{}) elementParams {
+	ep := elementParams{
+		Timeout: defaultTimeout,
+	}
+
+	ep.Selector, _ = params["selector"].(string)
+	ep.Context, _ = params["context"].(string)
+	ep.Scope, _ = params["scope"].(string)
+	ep.Role, _ = params["role"].(string)
+	ep.Text, _ = params["text"].(string)
+	ep.Label, _ = params["label"].(string)
+	ep.Placeholder, _ = params["placeholder"].(string)
+	ep.Alt, _ = params["alt"].(string)
+	ep.Title, _ = params["title"].(string)
+	ep.Testid, _ = params["testid"].(string)
+	ep.Xpath, _ = params["xpath"].(string)
+
+	if idx, ok := params["index"].(float64); ok {
+		ep.Index = int(idx)
+		ep.HasIndex = true
+	}
+
+	if timeoutMs, ok := params["timeout"].(float64); ok && timeoutMs > 0 {
+		ep.Timeout = time.Duration(timeoutMs) * time.Millisecond
+	}
+
+	return ep
+}
+
+// buildActionFindScript builds a JS function that finds an element (by CSS or semantic selectors),
+// supports index for querySelectorAll, scrolls it into view, and returns its bounding box.
+func buildActionFindScript(ep elementParams) (string, []map[string]interface{}) {
+	hasSemantic := ep.Role != "" || ep.Text != "" || ep.Label != "" || ep.Placeholder != "" ||
+		ep.Alt != "" || ep.Title != "" || ep.Testid != "" || ep.Xpath != ""
+
+	if !hasSemantic && ep.Selector != "" {
+		// CSS path with index support
+		args := []map[string]interface{}{
+			{"type": "string", "value": ep.Scope},
+			{"type": "string", "value": ep.Selector},
+			{"type": "number", "value": ep.Index},
+			{"type": "boolean", "value": ep.HasIndex},
+		}
+		script := `
+			(scope, selector, index, hasIndex) => {
+				const root = scope ? document.querySelector(scope) : document;
+				if (!root) return null;
+				let el;
+				if (hasIndex) {
+					const all = root.querySelectorAll(selector);
+					el = all[index];
+				} else {
+					el = root.querySelector(selector);
+				}
+				if (!el) return null;
+				if (el.scrollIntoViewIfNeeded) {
+					el.scrollIntoViewIfNeeded(true);
+				} else {
+					el.scrollIntoView({ block: 'center', inline: 'nearest' });
+				}
+				const rect = el.getBoundingClientRect();
+				return JSON.stringify({
+					tag: el.tagName.toLowerCase(),
+					text: (el.textContent || '').trim().substring(0, 100),
+					box: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+				});
+			}
+		`
+		return script, args
+	}
+
+	// Semantic path with index support
+	args := []map[string]interface{}{
+		{"type": "string", "value": ep.Scope},
+		{"type": "string", "value": ep.Selector},
+		{"type": "string", "value": ep.Role},
+		{"type": "string", "value": ep.Text},
+		{"type": "string", "value": ep.Label},
+		{"type": "string", "value": ep.Placeholder},
+		{"type": "string", "value": ep.Alt},
+		{"type": "string", "value": ep.Title},
+		{"type": "string", "value": ep.Testid},
+		{"type": "string", "value": ep.Xpath},
+		{"type": "number", "value": ep.Index},
+		{"type": "boolean", "value": ep.HasIndex},
+	}
+
+	script := `
+		(scope, selector, role, text, label, placeholder, alt, title, testid, xpath, index, hasIndex) => {
+			const root = scope ? document.querySelector(scope) : document;
+			if (!root) return null;
+	` + semanticMatchesHelper() + `
+			const found = collectMatches(root, selector, role, text, label, placeholder, alt, title, testid, xpath);
+			let el;
+			if (hasIndex) {
+				el = found[index];
+			} else {
+				el = pickBest(found, text);
+			}
+			if (!el) return null;
+			if (el.scrollIntoViewIfNeeded) {
+				el.scrollIntoViewIfNeeded(true);
+			} else {
+				el.scrollIntoView({ block: 'center', inline: 'nearest' });
+			}
+			const rect = el.getBoundingClientRect();
+			return JSON.stringify(toInfo(el));
+		}
+	`
+	return script, args
+}
+
+// resolveElement finds an element using the given params, polling until found or timeout.
+// It returns the element's info with updated bounding box after scrolling into view.
+func (r *Router) resolveElement(session *BrowserSession, context string, ep elementParams) (*elementInfo, error) {
+	script, args := buildActionFindScript(ep)
+	return r.waitForElementWithScript(session, context, script, args, ep.Timeout)
 }

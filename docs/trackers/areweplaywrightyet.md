@@ -79,22 +79,22 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `el.click()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.dblclick()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.fill(value)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.type(text)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.press(key)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.clear()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.check()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.uncheck()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.selectOption(val)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.click()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.dblclick()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.fill(value)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.type(text)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.press(key)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.clear()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.check()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.uncheck()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.selectOption(val)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.setFiles(paths)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.hover()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.focus()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.dragTo(target)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.tap()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.scrollIntoView()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.dispatchEvent(type)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.hover()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.focus()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.dragTo(target)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.tap()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.scrollIntoView()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.dispatchEvent(type)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Element State (14 commands)
 

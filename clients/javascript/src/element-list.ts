@@ -79,7 +79,8 @@ export class ElementList {
     const elements = result.elements.map((el) => {
       const info: ElementInfo = { tag: el.tag, text: el.text, box: el.box };
       const selectorStr = typeof this.selector === 'string' ? this.selector : '';
-      return new Element(this.client, this.context, selectorStr, info, el.index);
+      const selectorParams = typeof this.selector === 'string' ? { selector: this.selector } : { ...this.selector };
+      return new Element(this.client, this.context, selectorStr, info, el.index, selectorParams);
     });
 
     return new ElementList(this.client, this.context, this.selector, elements);

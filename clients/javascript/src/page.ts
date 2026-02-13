@@ -163,7 +163,8 @@ export class Page {
     };
 
     const selectorStr = typeof selector === 'string' ? selector : '';
-    return new Element(this.client, this.contextId, selectorStr, info);
+    const selectorParams = typeof selector === 'string' ? { selector } : { ...selector };
+    return new Element(this.client, this.contextId, selectorStr, info, undefined, selectorParams);
   }
 
   /** Find all elements matching a CSS selector or semantic options. Waits for at least one. */
@@ -185,9 +186,10 @@ export class Page {
     const result = await this.client.send<VibiumFindAllResult>('vibium:findAll', params);
 
     const selectorStr = typeof selector === 'string' ? selector : '';
+    const selectorParams = typeof selector === 'string' ? { selector } : { ...selector };
     const elements = result.elements.map((el) => {
       const info: ElementInfo = { tag: el.tag, text: el.text, box: el.box };
-      return new Element(this.client, this.contextId, selectorStr, info, el.index);
+      return new Element(this.client, this.contextId, selectorStr, info, el.index, selectorParams);
     });
 
     return new ElementList(this.client, this.contextId, selector, elements);

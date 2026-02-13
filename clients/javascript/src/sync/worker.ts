@@ -66,11 +66,117 @@ async function handleCommand(cmd: Command): Promise<unknown> {
       return { success: true };
     }
 
+    case 'element.dblclick': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.dblclick(options);
+      return { success: true };
+    }
+
+    case 'element.fill': {
+      const [elementId, value, options] = cmd.args as [number, string, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.fill(value, options);
+      return { success: true };
+    }
+
     case 'element.type': {
       const [elementId, text, options] = cmd.args as [number, string, ActionOptions | undefined];
       const element = elements.get(elementId);
       if (!element) throw new Error(`Element ${elementId} not found`);
       await element.type(text, options);
+      return { success: true };
+    }
+
+    case 'element.press': {
+      const [elementId, key, options] = cmd.args as [number, string, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.press(key, options);
+      return { success: true };
+    }
+
+    case 'element.clear': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.clear(options);
+      return { success: true };
+    }
+
+    case 'element.check': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.check(options);
+      return { success: true };
+    }
+
+    case 'element.uncheck': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.uncheck(options);
+      return { success: true };
+    }
+
+    case 'element.selectOption': {
+      const [elementId, value, options] = cmd.args as [number, string, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.selectOption(value, options);
+      return { success: true };
+    }
+
+    case 'element.hover': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.hover(options);
+      return { success: true };
+    }
+
+    case 'element.focus': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.focus(options);
+      return { success: true };
+    }
+
+    case 'element.dragTo': {
+      const [elementId, targetId, options] = cmd.args as [number, number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const target = elements.get(targetId);
+      if (!target) throw new Error(`Target element ${targetId} not found`);
+      await element.dragTo(target, options);
+      return { success: true };
+    }
+
+    case 'element.tap': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.tap(options);
+      return { success: true };
+    }
+
+    case 'element.scrollIntoView': {
+      const [elementId, options] = cmd.args as [number, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.scrollIntoView(options);
+      return { success: true };
+    }
+
+    case 'element.dispatchEvent': {
+      const [elementId, eventType, eventInit, options] = cmd.args as [number, string, Record<string, unknown> | undefined, ActionOptions | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.dispatchEvent(eventType, eventInit, options);
       return { success: true };
     }
 

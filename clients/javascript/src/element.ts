@@ -46,6 +46,7 @@ export class Element {
   private context: string;
   private selector: string;
   private _index?: number;
+  private _params: Record<string, unknown>;
   readonly info: ElementInfo;
 
   constructor(
@@ -53,13 +54,35 @@ export class Element {
     context: string,
     selector: string,
     info: ElementInfo,
-    index?: number
+    index?: number,
+    params?: Record<string, unknown>
   ) {
     this.client = client;
     this.context = context;
     this.selector = selector;
     this.info = info;
     this._index = index;
+    this._params = params || {};
+  }
+
+  /** Build the common params sent to vibium: commands for element resolution. */
+  private commandParams(extra?: Record<string, unknown>): Record<string, unknown> {
+    return {
+      ...this._params,
+      context: this.context,
+      selector: this.selector,
+      index: this._index,
+      ...extra,
+    };
+  }
+
+  /** Return params that can identify this element for use as a target (e.g. dragTo). */
+  toParams(): Record<string, unknown> {
+    return {
+      ...this._params,
+      selector: this.selector,
+      index: this._index,
+    };
   }
 
   /**
@@ -67,26 +90,123 @@ export class Element {
    * Waits for element to be visible, stable, receive events, and enabled.
    */
   async click(options?: ActionOptions): Promise<void> {
-    await this.client.send('vibium:click', {
-      context: this.context,
-      selector: this.selector,
-      index: this._index,
+    await this.client.send('vibium:click', this.commandParams({
       timeout: options?.timeout,
-    });
+    }));
+  }
+
+  /** Double-click the element. */
+  async dblclick(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:dblclick', this.commandParams({
+      timeout: options?.timeout,
+    }));
   }
 
   /**
-   * Type text into the element.
+   * Fill the element with text (clears existing content first).
+   * For inputs and textareas.
+   */
+  async fill(value: string, options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:fill', this.commandParams({
+      value,
+      timeout: options?.timeout,
+    }));
+  }
+
+  /**
+   * Type text into the element (appends to existing content).
    * Waits for element to be visible, stable, receive events, enabled, and editable.
    */
   async type(text: string, options?: ActionOptions): Promise<void> {
-    await this.client.send('vibium:type', {
-      context: this.context,
-      selector: this.selector,
+    await this.client.send('vibium:type', this.commandParams({
       text,
-      index: this._index,
       timeout: options?.timeout,
-    });
+    }));
+  }
+
+  /**
+   * Press a key while the element is focused.
+   * Supports key names ("Enter", "Tab") and combos ("Control+a").
+   */
+  async press(key: string, options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:press', this.commandParams({
+      key,
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Clear the element's content (select all + delete). */
+  async clear(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:clear', this.commandParams({
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Check a checkbox (no-op if already checked). */
+  async check(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:check', this.commandParams({
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Uncheck a checkbox (no-op if already unchecked). */
+  async uncheck(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:uncheck', this.commandParams({
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Select an option in a <select> element by value. */
+  async selectOption(value: string, options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:selectOption', this.commandParams({
+      value,
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Hover over the element (move mouse to center, no click). */
+  async hover(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:hover', this.commandParams({
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Focus the element. */
+  async focus(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:focus', this.commandParams({
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Drag this element to a target element. */
+  async dragTo(target: Element, options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:dragTo', this.commandParams({
+      target: target.toParams(),
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Tap the element (touch action). */
+  async tap(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:tap', this.commandParams({
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Scroll the element into view. */
+  async scrollIntoView(options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:scrollIntoView', this.commandParams({
+      timeout: options?.timeout,
+    }));
+  }
+
+  /** Dispatch a DOM event on the element. */
+  async dispatchEvent(eventType: string, eventInit?: Record<string, unknown>, options?: ActionOptions): Promise<void> {
+    await this.client.send('vibium:dispatchEvent', this.commandParams({
+      eventType,
+      eventInit,
+      timeout: options?.timeout,
+    }));
   }
 
   async text(): Promise<string> {
@@ -179,7 +299,8 @@ export class Element {
 
     const info: ElementInfo = { tag: result.tag, text: result.text, box: result.box };
     const childSelector = typeof selector === 'string' ? selector : '';
-    return new Element(this.client, this.context, childSelector, info);
+    const childParams = typeof selector === 'string' ? { selector } : { ...selector };
+    return new Element(this.client, this.context, childSelector, info, undefined, childParams);
   }
 
   /** Find all child elements by CSS selector or semantic options. Scoped to this element. */
@@ -203,9 +324,10 @@ export class Element {
     }>('vibium:findAll', params);
 
     const selectorStr = typeof selector === 'string' ? selector : '';
+    const selectorParams = typeof selector === 'string' ? { selector } : { ...selector };
     const elements = result.elements.map((el) => {
       const info: ElementInfo = { tag: el.tag, text: el.text, box: el.box };
-      return new Element(this.client, this.context, selectorStr, info, el.index);
+      return new Element(this.client, this.context, selectorStr, info, el.index, selectorParams);
     });
 
     return new ElementList(this.client, this.context, selector, elements);
