@@ -5,7 +5,7 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert');
-const { execSync, spawn } = require('node:child_process');
+const { execSync, execFileSync, spawn } = require('node:child_process');
 const { CLICKER } = require('../helpers');
 
 /**
@@ -80,8 +80,16 @@ describe('CLI: Process Cleanup', () => {
     // Wait for server to start and a browser to potentially be spawned
     await sleep(2000);
 
-    // Send SIGTERM to gracefully shut down
-    server.kill('SIGTERM');
+    // Shut down the server and its process tree
+    if (process.platform === 'win32') {
+      try {
+        execFileSync('taskkill', ['/T', '/F', '/PID', server.pid.toString()], { stdio: 'ignore' });
+      } catch {
+        // Process may have already exited
+      }
+    } else {
+      server.kill('SIGTERM');
+    }
 
     // Wait for server to clean up (with timeout)
     await new Promise((resolve) => {

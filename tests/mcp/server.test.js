@@ -5,7 +5,7 @@
 
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
 const { CLICKER } = require('../helpers');
 
 /**
@@ -93,7 +93,17 @@ class MCPClient {
 
   stop() {
     if (this.proc) {
-      this.proc.kill();
+      if (process.platform === 'win32') {
+        // On Windows, proc.kill() only kills the immediate process.
+        // Use taskkill /T to kill the entire process tree (clicker + chromedriver + Chrome).
+        try {
+          execFileSync('taskkill', ['/T', '/F', '/PID', this.proc.pid.toString()], { stdio: 'ignore' });
+        } catch {
+          // Process may have already exited
+        }
+      } else {
+        this.proc.kill();
+      }
       this.proc = null;
     }
   }

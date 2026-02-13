@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -54,8 +53,7 @@ func newClickCmd() *cobra.Command {
 
 			// Oneshot mode (original behavior) — requires URL + selector
 			if len(args) < 2 {
-				fmt.Fprintf(os.Stderr, "Error: requires [url] [selector] in oneshot mode\n")
-				os.Exit(1)
+				fatalExit("Error: requires [url] [selector] in oneshot mode")
 			}
 			url := args[0]
 			selector := args[1]
@@ -65,16 +63,14 @@ func newClickCmd() *cobra.Command {
 				fmt.Println("Launching browser...")
 				launchResult, err := browser.Launch(browser.LaunchOptions{Headless: headless})
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error launching browser: %v\n", err)
-					os.Exit(1)
+					fatalExit("Error launching browser: %v", err)
 				}
 				defer waitAndClose(launchResult)
 
 				fmt.Println("Connecting to BiDi...")
 				conn, err := bidi.Connect(launchResult.WebSocketURL)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error connecting: %v\n", err)
-					os.Exit(1)
+					fatalExit("Error connecting: %v", err)
 				}
 				defer conn.Close()
 
@@ -83,8 +79,7 @@ func newClickCmd() *cobra.Command {
 				fmt.Printf("Navigating to %s...\n", url)
 				_, err = client.Navigate("", url)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error navigating: %v\n", err)
-					os.Exit(1)
+					fatalExit("Error navigating: %v", err)
 				}
 
 				doWaitOpen()
@@ -93,8 +88,7 @@ func newClickCmd() *cobra.Command {
 				fmt.Printf("Waiting for element to be actionable: %s\n", selector)
 				opts := features.WaitOptions{Timeout: timeout}
 				if err := features.WaitForClick(client, "", selector, opts); err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					fatalExit("Error: %v", err)
 				}
 
 				// Get URL before click so we can detect navigation
@@ -103,8 +97,7 @@ func newClickCmd() *cobra.Command {
 				fmt.Printf("Clicking element: %s\n", selector)
 				err = client.ClickElement("", selector)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error clicking: %v\n", err)
-					os.Exit(1)
+					fatalExit("Error clicking: %v", err)
 				}
 
 				// Poll for URL change to detect click-triggered navigation.

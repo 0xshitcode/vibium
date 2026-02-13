@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, execFileSync, ChildProcess } from 'child_process';
 import { getClickerPath } from './binary';
 import { TimeoutError, BrowserCrashedError } from '../utils/errors';
 
@@ -96,16 +96,28 @@ export class ClickerProcess {
         resolve();
       });
 
-      // Try graceful shutdown first
-      this.process.kill('SIGTERM');
-
-      // Force kill after timeout
-      setTimeout(() => {
-        if (!this.process.killed) {
-          this.process.kill('SIGKILL');
+      if (process.platform === 'win32') {
+        // On Windows, process.kill('SIGTERM') calls TerminateProcess() which
+        // kills only the immediate process without letting cleanup code run.
+        // Use taskkill /T to kill the entire process tree (clicker + chromedriver + Chrome).
+        try {
+          execFileSync('taskkill', ['/T', '/F', '/PID', this.process.pid!.toString()], { stdio: 'ignore' });
+        } catch {
+          // Process may have already exited
         }
         resolve();
-      }, 3000);
+      } else {
+        // Try graceful shutdown first
+        this.process.kill('SIGTERM');
+
+        // Force kill after timeout
+        setTimeout(() => {
+          if (!this.process.killed) {
+            this.process.kill('SIGKILL');
+          }
+          resolve();
+        }, 3000);
+      }
     });
   }
 }

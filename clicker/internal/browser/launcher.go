@@ -290,8 +290,10 @@ func createSession(baseURL, chromePath string, headless, verbose bool) (string, 
 func (r *LaunchResult) Close() error {
 	log.Debug("closing browser", "sessionId", r.SessionID)
 
-	// Delete session first (tells chromedriver to quit Chrome gracefully)
-	if r.SessionID != "" && r.Port > 0 {
+	// Delete session first (tells chromedriver to quit Chrome gracefully).
+	// Skip on Windows: the DELETE can cause chromedriver to exit before
+	// taskkill /T runs, orphaning Chrome children. taskkill /T handles cleanup.
+	if !skipGracefulShutdown() && r.SessionID != "" && r.Port > 0 {
 		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("http://localhost:%d/session/%s", r.Port, r.SessionID), nil)
 		if req != nil {
 			client := &http.Client{Timeout: 5 * time.Second}
