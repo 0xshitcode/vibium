@@ -1,4 +1,5 @@
 import { BiDiClient } from './bidi';
+import { ElementList, ElementListInfo } from './element-list';
 import { ElementNotFoundError } from './utils/errors';
 
 export interface BoundingBox {
@@ -27,22 +28,38 @@ export interface ActionOptions {
   timeout?: number;
 }
 
+export interface SelectorOptions {
+  role?: string;
+  text?: string;
+  label?: string;
+  placeholder?: string;
+  alt?: string;
+  title?: string;
+  testid?: string;
+  xpath?: string;
+  near?: string;
+  timeout?: number;
+}
+
 export class Element {
   private client: BiDiClient;
   private context: string;
   private selector: string;
+  private _index?: number;
   readonly info: ElementInfo;
 
   constructor(
     client: BiDiClient,
     context: string,
     selector: string,
-    info: ElementInfo
+    info: ElementInfo,
+    index?: number
   ) {
     this.client = client;
     this.context = context;
     this.selector = selector;
     this.info = info;
+    this._index = index;
   }
 
   /**
@@ -53,6 +70,7 @@ export class Element {
     await this.client.send('vibium:click', {
       context: this.context,
       selector: this.selector,
+      index: this._index,
       timeout: options?.timeout,
     });
   }
@@ -66,6 +84,7 @@ export class Element {
       context: this.context,
       selector: this.selector,
       text,
+      index: this._index,
       timeout: options?.timeout,
     });
   }
@@ -137,6 +156,61 @@ export class Element {
     return JSON.parse(result.result.value as string) as BoundingBox;
   }
 
+  /** Find a child element by CSS selector or semantic options. Scoped to this element. */
+  async find(selector: string | SelectorOptions, options?: { timeout?: number }): Promise<Element> {
+    const params: Record<string, unknown> = {
+      context: this.context,
+      scope: this.selector,
+      timeout: options?.timeout,
+    };
+
+    if (typeof selector === 'string') {
+      params.selector = selector;
+    } else {
+      Object.assign(params, selector);
+      if (selector.timeout) params.timeout = selector.timeout;
+    }
+
+    const result = await this.client.send<{
+      tag: string;
+      text: string;
+      box: BoundingBox;
+    }>('vibium:find', params);
+
+    const info: ElementInfo = { tag: result.tag, text: result.text, box: result.box };
+    const childSelector = typeof selector === 'string' ? selector : '';
+    return new Element(this.client, this.context, childSelector, info);
+  }
+
+  /** Find all child elements by CSS selector or semantic options. Scoped to this element. */
+  async findAll(selector: string | SelectorOptions, options?: { timeout?: number }): Promise<ElementList> {
+    const params: Record<string, unknown> = {
+      context: this.context,
+      scope: this.selector,
+      timeout: options?.timeout,
+    };
+
+    if (typeof selector === 'string') {
+      params.selector = selector;
+    } else {
+      Object.assign(params, selector);
+      if (selector.timeout) params.timeout = selector.timeout;
+    }
+
+    const result = await this.client.send<{
+      elements: Array<{ tag: string; text: string; box: BoundingBox; index: number }>;
+      count: number;
+    }>('vibium:findAll', params);
+
+    const selectorStr = typeof selector === 'string' ? selector : '';
+    const elements = result.elements.map((el) => {
+      const info: ElementInfo = { tag: el.tag, text: el.text, box: el.box };
+      return new Element(this.client, this.context, selectorStr, info, el.index);
+    });
+
+    return new ElementList(this.client, this.context, selector, elements);
+  }
+
   private getCenter(): { x: number; y: number } {
     return {
       x: this.info.box.x + this.info.box.width / 2,
@@ -144,3 +218,5 @@ export class Element {
     };
   }
 }
+
+export { ElementList } from './element-list';

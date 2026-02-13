@@ -1,6 +1,6 @@
 # Are We Playwright Yet?
 
-Vibium's Playwright-equivalent API coverage. 155 commands across 23 categories, tracked across 6 implementation targets.
+Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, tracked across 6 implementation targets.
 
 **Legend:** ✅ Done · 🟡 Partial · ⬜ Not started · — N/A
 
@@ -20,10 +20,11 @@ Vibium's Playwright-equivalent API coverage. 155 commands across 23 categories, 
 | `page.waitForLoad(state?)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `page.content()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
-## Pages & Contexts (10 commands)
+## Pages & Contexts (11 commands)
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
+| `browser.page()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `browser.newPage()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `browser.newContext()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `context.newPage()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -39,38 +40,38 @@ Vibium's Playwright-equivalent API coverage. 155 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.find('css')` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.find({role, text, …})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.findAll('css')` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.findAll({…})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.find('css')` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.find({…})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.find('css')` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.find({role, text, …})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.findAll('css')` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.findAll({…})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.find('css')` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.find({…})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Selector Strategies (10 commands)
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `find({role: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({text: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({label: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({placeholder: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({alt: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({title: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({testid: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({xpath: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({role: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({text: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({label: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({placeholder: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({alt: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({title: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({testid: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({xpath: '…'})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `find({near: '…'})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `find({role, text}) combo` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `find({role, text}) combo` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Locator Chaining & Filtering (8 commands)
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `el.first()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.last()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.nth(index)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.count()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.filter({hasText})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.filter({has})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.first()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.last()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.nth(index)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.count()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.filter({hasText})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.filter({has})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.or(other)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.and(other)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
@@ -78,10 +79,10 @@ Vibium's Playwright-equivalent API coverage. 155 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `el.click()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.click()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.dblclick()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.fill(value)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.type(text)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.type(text)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.press(key)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.clear()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.check()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -99,12 +100,12 @@ Vibium's Playwright-equivalent API coverage. 155 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `el.text()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.text()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.innerText()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.html()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.value()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.attr(name)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.bounds()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.attr(name)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.bounds()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.isVisible()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.isHidden()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `el.isEnabled()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -172,7 +173,7 @@ Vibium's Playwright-equivalent API coverage. 155 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.screenshot()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.screenshot()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `page.screenshot({fullPage})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `page.screenshot({clip})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `page.pdf()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -261,7 +262,7 @@ Vibium's Playwright-equivalent API coverage. 155 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.eval(expr)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.eval(expr)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `page.evalHandle(expr)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
 | `page.addScript(src)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `page.addStyle(src)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |

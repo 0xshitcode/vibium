@@ -1,5 +1,6 @@
 import { BiDiClient, ScreenshotResult } from './bidi';
-import { Element, ElementInfo } from './element';
+import { Element, ElementInfo, SelectorOptions } from './element';
+import { ElementList, ElementListInfo } from './element-list';
 import { debug } from './utils/debug';
 
 export interface FindOptions {
@@ -16,6 +17,11 @@ interface VibiumFindResult {
     width: number;
     height: number;
   };
+}
+
+interface VibiumFindAllResult {
+  elements: ElementListInfo[];
+  count: number;
 }
 
 export class Page {
@@ -132,15 +138,23 @@ export class Page {
     return result.result.value as T;
   }
 
-  /** Find an element by CSS selector. Waits for element to exist before returning. */
-  async find(selector: string, options?: FindOptions): Promise<Element> {
-    debug('page.find', { selector, timeout: options?.timeout });
-
-    const result = await this.client.send<VibiumFindResult>('vibium:find', {
+  /** Find an element by CSS selector or semantic options. Waits for element to exist. */
+  async find(selector: string | SelectorOptions, options?: FindOptions): Promise<Element> {
+    const params: Record<string, unknown> = {
       context: this.contextId,
-      selector,
       timeout: options?.timeout,
-    });
+    };
+
+    if (typeof selector === 'string') {
+      debug('page.find', { selector, timeout: options?.timeout });
+      params.selector = selector;
+    } else {
+      debug('page.find', { ...selector, timeout: options?.timeout });
+      Object.assign(params, selector);
+      if (selector.timeout && !options?.timeout) params.timeout = selector.timeout;
+    }
+
+    const result = await this.client.send<VibiumFindResult>('vibium:find', params);
 
     const info: ElementInfo = {
       tag: result.tag,
@@ -148,6 +162,34 @@ export class Page {
       box: result.box,
     };
 
-    return new Element(this.client, this.contextId, selector, info);
+    const selectorStr = typeof selector === 'string' ? selector : '';
+    return new Element(this.client, this.contextId, selectorStr, info);
+  }
+
+  /** Find all elements matching a CSS selector or semantic options. Waits for at least one. */
+  async findAll(selector: string | SelectorOptions, options?: FindOptions): Promise<ElementList> {
+    const params: Record<string, unknown> = {
+      context: this.contextId,
+      timeout: options?.timeout,
+    };
+
+    if (typeof selector === 'string') {
+      debug('page.findAll', { selector, timeout: options?.timeout });
+      params.selector = selector;
+    } else {
+      debug('page.findAll', { ...selector, timeout: options?.timeout });
+      Object.assign(params, selector);
+      if (selector.timeout && !options?.timeout) params.timeout = selector.timeout;
+    }
+
+    const result = await this.client.send<VibiumFindAllResult>('vibium:findAll', params);
+
+    const selectorStr = typeof selector === 'string' ? selector : '';
+    const elements = result.elements.map((el) => {
+      const info: ElementInfo = { tag: el.tag, text: el.text, box: el.box };
+      return new Element(this.client, this.contextId, selectorStr, info, el.index);
+    });
+
+    return new ElementList(this.client, this.contextId, selector, elements);
   }
 }

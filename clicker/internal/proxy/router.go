@@ -146,13 +146,16 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 	// Handle vibium: extension commands (per WebDriver BiDi spec for extensions)
 	switch cmd.Method {
 	case "vibium:click":
-		r.handleVibiumClick(session, cmd)
+		go r.handleVibiumClick(session, cmd)
 		return
 	case "vibium:type":
-		r.handleVibiumType(session, cmd)
+		go r.handleVibiumType(session, cmd)
 		return
 	case "vibium:find":
-		r.handleVibiumFind(session, cmd)
+		go r.handleVibiumFind(session, cmd)
+		return
+	case "vibium:findAll":
+		go r.handleVibiumFindAll(session, cmd)
 		return
 
 	// Navigation commands
@@ -362,60 +365,6 @@ func (r *Router) handleVibiumType(session *BrowserSession, cmd bidiCommand) {
 	r.sendSuccess(session, cmd.ID, map[string]interface{}{"typed": true})
 }
 
-// handleVibiumFind handles the vibium:find command with wait-for-selector.
-func (r *Router) handleVibiumFind(session *BrowserSession, cmd bidiCommand) {
-	selector, _ := cmd.Params["selector"].(string)
-	context, _ := cmd.Params["context"].(string)
-	timeoutMs, _ := cmd.Params["timeout"].(float64)
-
-	timeout := defaultTimeout
-	if timeoutMs > 0 {
-		timeout = time.Duration(timeoutMs) * time.Millisecond
-	}
-
-	// Get context if not provided
-	if context == "" {
-		ctx, err := r.getContext(session)
-		if err != nil {
-			r.sendError(session, cmd.ID, err)
-			return
-		}
-		context = ctx
-	}
-
-	// Wait for element
-	info, err := r.waitForElement(session, context, selector, timeout)
-	if err != nil {
-		r.sendError(session, cmd.ID, err)
-		return
-	}
-
-	r.sendSuccess(session, cmd.ID, map[string]interface{}{
-		"tag":  info.Tag,
-		"text": info.Text,
-		"box": map[string]interface{}{
-			"x":      info.Box.X,
-			"y":      info.Box.Y,
-			"width":  info.Box.Width,
-			"height": info.Box.Height,
-		},
-	})
-}
-
-// elementInfo holds parsed element information.
-type elementInfo struct {
-	Tag  string  `json:"tag"`
-	Text string  `json:"text"`
-	Box  boxInfo `json:"box"`
-}
-
-type boxInfo struct {
-	X      float64 `json:"x"`
-	Y      float64 `json:"y"`
-	Width  float64 `json:"width"`
-	Height float64 `json:"height"`
-}
-
 // getContext retrieves the first browsing context.
 func (r *Router) getContext(session *BrowserSession) (string, error) {
 	resp, err := r.sendInternalCommand(session, "browsingContext.getTree", map[string]interface{}{})
@@ -437,70 +386,6 @@ func (r *Router) getContext(session *BrowserSession) (string, error) {
 		return "", fmt.Errorf("no browsing contexts available")
 	}
 	return result.Result.Contexts[0].Context, nil
-}
-
-// waitForElement polls until an element is found or timeout.
-func (r *Router) waitForElement(session *BrowserSession, context, selector string, timeout time.Duration) (*elementInfo, error) {
-	deadline := time.Now().Add(timeout)
-	interval := 100 * time.Millisecond
-
-	findScript := `
-		(selector) => {
-			const el = document.querySelector(selector);
-			if (!el) return null;
-			const rect = el.getBoundingClientRect();
-			return JSON.stringify({
-				tag: el.tagName.toLowerCase(),
-				text: (el.textContent || '').trim().substring(0, 100),
-				box: {
-					x: rect.x,
-					y: rect.y,
-					width: rect.width,
-					height: rect.height
-				}
-			});
-		}
-	`
-
-	for {
-		params := map[string]interface{}{
-			"functionDeclaration": findScript,
-			"target":              map[string]interface{}{"context": context},
-			"arguments": []map[string]interface{}{
-				{"type": "string", "value": selector},
-			},
-			"awaitPromise":    false,
-			"resultOwnership": "root",
-		}
-
-		resp, err := r.sendInternalCommand(session, "script.callFunction", params)
-		if err == nil {
-			// The BiDi response structure is nested:
-			// { "result": { "realm": "...", "result": { "type": "string", "value": "..." } } }
-			var result struct {
-				Result struct {
-					Result struct {
-						Type  string `json:"type"`
-						Value string `json:"value,omitempty"`
-					} `json:"result"`
-				} `json:"result"`
-			}
-			if err := json.Unmarshal(resp, &result); err == nil {
-				if result.Result.Result.Type == "string" && result.Result.Result.Value != "" {
-					var info elementInfo
-					if err := json.Unmarshal([]byte(result.Result.Result.Value), &info); err == nil {
-						return &info, nil
-					}
-				}
-			}
-		}
-
-		if time.Now().After(deadline) {
-			return nil, fmt.Errorf("timeout after %s waiting for '%s': element not found", timeout, selector)
-		}
-
-		time.Sleep(interval)
-	}
 }
 
 // sendSuccess sends a successful response to the client.
