@@ -11,6 +11,18 @@ The `vibium` CLI automates Chrome via the command line. The browser auto-launche
 vibium navigate <url> → vibium text → vibium screenshot -o shot.png
 ```
 
+## Binary Resolution
+
+Before running any commands, resolve the `vibium` binary path once:
+
+1. Try `vibium` directly (works if globally installed via `npm install -g vibium`)
+2. Fall back to `./clicker/bin/vibium` (dev environment, in project root)
+3. Fall back to `./node_modules/.bin/vibium` (local npm install)
+
+Run `vibium --help` (or the resolved path) to confirm. Use the resolved path for all subsequent commands.
+
+**Windows note:** Use forward slashes in paths (e.g. `./clicker/bin/vibium.exe`) and quote paths containing spaces.
+
 ## Commands
 
 ### Navigation

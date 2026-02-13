@@ -1,7 +1,4 @@
 # Setting Up Local Vibium Dev (x86 Windows)
-
-> **Draft**: This doc has not been tested yet. Instructions may need adjustment.
-
 This doc covers Windows VM setup on an x86 Windows host for isolated development.
 
 For other platforms, see:
