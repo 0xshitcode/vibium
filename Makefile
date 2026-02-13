@@ -1,6 +1,6 @@
 # Windows: use Git Bash as shell so Unix commands (cp, rm, mkdir, etc.) work
 ifeq ($(OS),Windows_NT)
-  SHELL := C:/PROGRA~1/Git/usr/bin/bash
+  SHELL := C:/PROGRA~1/Git/usr/bin/bash.exe
   .SHELLFLAGS := -c
   EXE := .exe
 else
@@ -10,6 +10,8 @@ endif
 .PHONY: all build build-go build-js build-go-all package package-js package-python install-browser deps clean clean-go clean-js clean-npm-packages clean-python-packages clean-packages clean-cache clean-all serve test test-cli test-js test-mcp test-daemon test-python double-tap get-version set-version help
 
 # Version from VERSION file
+# Note: GnuWin32 Make 3.81 runs $(shell) via CreateProcess, not SHELL,
+# so 'cat' must be on PATH (add Git's usr/bin — see docs/local-dev-setup-x86-windows.md)
 VERSION := $(shell cat VERSION)
 
 # Default target

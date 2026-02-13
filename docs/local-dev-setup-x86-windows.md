@@ -160,16 +160,19 @@ winget install BurntSushi.ripgrep.MSVC
 winget install jqlang.jq
 ```
 
-Restart terminal after installing Git, then add GnuWin32 Make to your PATH:
+Restart terminal after installing Git, then add GnuWin32 Make and Git's Unix tools to your PATH:
 
 ```powershell
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files (x86)\GnuWin32\bin", "User")
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files (x86)\GnuWin32\bin;C:\Program Files\Git\usr\bin", "User")
 ```
 
-Restart your terminal again after updating PATH. Verify:
+This adds `make` plus Unix tools (`cp`, `rm`, `mkdir`, `cat`, `bash`, etc.) that the Makefile requires. GnuWin32 Make 3.81 doesn't use the Makefile's `SHELL` variable, so these tools must be directly on PATH.
+
+Restart your terminal after updating PATH. Verify:
 
 ```powershell
 make --version
+bash --version
 ```
 
 ---
