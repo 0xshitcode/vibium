@@ -1,4 +1,4 @@
-"""Clicker binary management - finding, spawning, and stopping."""
+"""Vibium binary management - finding, spawning, and stopping."""
 
 import asyncio
 import importlib.util
@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Optional
 
 
-class ClickerNotFoundError(Exception):
-    """Raised when the clicker binary cannot be found."""
+class VibiumNotFoundError(Exception):
+    """Raised when the vibium binary cannot be found."""
     pass
 
 
@@ -52,25 +52,25 @@ def get_cache_dir() -> Path:
         return Path(xdg_cache) / "vibium"
 
 
-def find_clicker() -> str:
-    """Find the clicker binary.
+def find_vibium_bin() -> str:
+    """Find the vibium binary.
 
     Search order:
-    1. VIBIUM_CLICKER_PATH environment variable
+    1. VIBIUM_BIN_PATH environment variable
     2. Platform-specific package (vibium_darwin_arm64, etc.)
     3. PATH (via shutil.which)
     4. Platform cache directory
 
     Returns:
-        Path to the clicker binary.
+        Path to the vibium binary.
 
     Raises:
-        ClickerNotFoundError: If the binary cannot be found.
+        VibiumNotFoundError: If the binary cannot be found.
     """
-    binary_name = "clicker.exe" if sys.platform == "win32" else "clicker"
+    binary_name = "vibium.exe" if sys.platform == "win32" else "vibium"
 
     # 1. Check environment variable
-    env_path = os.environ.get("VIBIUM_CLICKER_PATH")
+    env_path = os.environ.get("VIBIUM_BIN_PATH")
     if env_path and os.path.isfile(env_path):
         return env_path
 
@@ -97,21 +97,21 @@ def find_clicker() -> str:
     if cache_binary.is_file():
         return str(cache_binary)
 
-    raise ClickerNotFoundError(
-        f"Could not find clicker binary. "
+    raise VibiumNotFoundError(
+        f"Could not find vibium binary. "
         f"Install the platform package: pip install {package_name}"
     )
 
 
-def ensure_browser_installed(clicker_path: str) -> None:
+def ensure_browser_installed(vibium_path: str) -> None:
     """Ensure Chrome for Testing is installed.
 
-    Runs 'clicker install' if Chrome is not found.
+    Runs 'vibium install' if Chrome is not found.
     """
-    # Check if Chrome is installed by running 'clicker paths'
+    # Check if Chrome is installed by running 'vibium paths'
     try:
         result = subprocess.run(
-            [clicker_path, "paths"],
+            [vibium_path, "paths"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -132,7 +132,7 @@ def ensure_browser_installed(clicker_path: str) -> None:
     print("Downloading Chrome for Testing...", flush=True)
     try:
         subprocess.run(
-            [clicker_path, "install"],
+            [vibium_path, "install"],
             check=True,
             timeout=300,  # 5 minute timeout for download
         )
@@ -143,8 +143,8 @@ def ensure_browser_installed(clicker_path: str) -> None:
         raise RuntimeError("Chrome installation timed out")
 
 
-class ClickerProcess:
-    """Manages a clicker subprocess."""
+class VibiumProcess:
+    """Manages a vibium subprocess."""
 
     def __init__(self, process: subprocess.Popen, port: int):
         self._process = process
@@ -156,18 +156,18 @@ class ClickerProcess:
         headless: bool = False,
         port: Optional[int] = None,
         executable_path: Optional[str] = None,
-    ) -> "ClickerProcess":
-        """Start a clicker process.
+    ) -> "VibiumProcess":
+        """Start a vibium process.
 
         Args:
             headless: Run browser in headless mode.
             port: WebSocket port (default: auto-assigned).
-            executable_path: Path to clicker binary (default: auto-detect).
+            executable_path: Path to vibium binary (default: auto-detect).
 
         Returns:
-            A ClickerProcess instance.
+            A VibiumProcess instance.
         """
-        binary = executable_path or find_clicker()
+        binary = executable_path or find_vibium_bin()
 
         # Ensure Chrome is installed (auto-download if needed)
         ensure_browser_installed(binary)
@@ -187,7 +187,7 @@ class ClickerProcess:
         )
 
         # Read the port from stdout
-        # Clicker prints "Listening on ws://localhost:PORT"
+        # Vibium prints "Listening on ws://localhost:PORT"
         actual_port = port or 9515
 
         if process.stdout:
@@ -205,12 +205,12 @@ class ClickerProcess:
         # Check if process is still running
         if process.poll() is not None:
             stderr = process.stderr.read() if process.stderr else ""
-            raise RuntimeError(f"Clicker failed to start: {stderr}")
+            raise RuntimeError(f"Vibium failed to start: {stderr}")
 
         return cls(process, actual_port)
 
     async def stop(self) -> None:
-        """Stop the clicker process."""
+        """Stop the vibium process."""
         if self._process.poll() is None:
             self._process.terminate()
             try:

@@ -17,7 +17,7 @@ See open issues: https://github.com/VibiumDev/vibium/issues
 
 ## Tech Stack
 
-- Go (clicker binary)
+- Go (vibium binary)
 - TypeScript (JS client)
 - Python (Python client)
 - WebDriver BiDi protocol
@@ -36,4 +36,4 @@ Power users can override defaults (headless mode, custom paths, etc.) when neede
 
 - Prioritize bug fixes over new features
 - Run tests before committing: `make test`
-- When adding new command line options to the bin/clicker binary, add a simple example and sample output (or short description)
+- When adding new command line options to the vibium binary, add a simple example and sample output (or short description)

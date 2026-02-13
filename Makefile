@@ -20,32 +20,31 @@ all: build
 # Build everything (Go + JS)
 build: build-go build-js
 
-# Build clicker binary + vibe-check symlink
+# Build vibium binary
 build-go: deps
 	cp skills/vibe-check/SKILL.md clicker/cmd/clicker/SKILL.md
-	cd clicker && go build -ldflags="-X main.version=$(VERSION)" -o bin/clicker$(EXE) ./cmd/clicker
-	cp clicker/bin/clicker$(EXE) clicker/bin/vibe-check$(EXE)
+	cd clicker && go build -ldflags="-X main.version=$(VERSION)" -o bin/vibium$(EXE) ./cmd/clicker
 	@if [ -d node_modules/@vibium ]; then \
 		platform=$$(node -e "console.log(require('os').platform()+'-'+(require('os').arch()==='x64'?'x64':'arm64'))"); \
-		target="node_modules/@vibium/$$platform/bin/clicker$(EXE)"; \
-		if [ -f "$$target" ]; then cp clicker/bin/clicker$(EXE) "$$target"; fi; \
+		target="node_modules/@vibium/$$platform/bin/vibium$(EXE)"; \
+		if [ -f "$$target" ]; then cp clicker/bin/vibium$(EXE) "$$target"; fi; \
 	fi
 
 # Build JS client
 build-js: deps
 	cd clients/javascript && npm run build
 
-# Cross-compile clicker for all platforms (static binaries)
-# Output: clicker/bin/clicker-{os}-{arch}[.exe]
+# Cross-compile vibium for all platforms (static binaries)
+# Output: clicker/bin/vibium-{os}-{arch}[.exe]
 build-go-all:
-	@echo "Cross-compiling clicker for all platforms..."
-	cd clicker && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/clicker-linux-amd64 ./cmd/clicker
-	cd clicker && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/clicker-linux-arm64 ./cmd/clicker
-	cd clicker && CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/clicker-darwin-amd64 ./cmd/clicker
-	cd clicker && CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/clicker-darwin-arm64 ./cmd/clicker
-	cd clicker && CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/clicker-windows-amd64.exe ./cmd/clicker
+	@echo "Cross-compiling vibium for all platforms..."
+	cd clicker && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/vibium-linux-amd64 ./cmd/clicker
+	cd clicker && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/vibium-linux-arm64 ./cmd/clicker
+	cd clicker && CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/vibium-darwin-amd64 ./cmd/clicker
+	cd clicker && CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/vibium-darwin-arm64 ./cmd/clicker
+	cd clicker && CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.version=$(VERSION)" -o bin/vibium-windows-amd64.exe ./cmd/clicker
 	@echo "Done. Built binaries:"
-	@ls -lh clicker/bin/clicker-*
+	@ls -lh clicker/bin/vibium-*
 
 # Build all packages (npm + Python)
 package: package-js package-python
@@ -54,11 +53,11 @@ package: package-js package-python
 package-js: build-go-all build-js
 	@echo "Copying binaries to platform packages..."
 	mkdir -p packages/linux-x64/bin packages/linux-arm64/bin packages/darwin-x64/bin packages/darwin-arm64/bin packages/win32-x64/bin
-	cp clicker/bin/clicker-linux-amd64 packages/linux-x64/bin/clicker
-	cp clicker/bin/clicker-linux-arm64 packages/linux-arm64/bin/clicker
-	cp clicker/bin/clicker-darwin-amd64 packages/darwin-x64/bin/clicker
-	cp clicker/bin/clicker-darwin-arm64 packages/darwin-arm64/bin/clicker
-	cp clicker/bin/clicker-windows-amd64.exe packages/win32-x64/bin/clicker.exe
+	cp clicker/bin/vibium-linux-amd64 packages/linux-x64/bin/vibium
+	cp clicker/bin/vibium-linux-arm64 packages/linux-arm64/bin/vibium
+	cp clicker/bin/vibium-darwin-amd64 packages/darwin-x64/bin/vibium
+	cp clicker/bin/vibium-darwin-arm64 packages/darwin-arm64/bin/vibium
+	cp clicker/bin/vibium-windows-amd64.exe packages/win32-x64/bin/vibium.exe
 	@echo "Copying LICENSE and NOTICE to npm packages..."
 	@for pkg in packages/linux-x64 packages/linux-arm64 packages/darwin-x64 packages/darwin-arm64 packages/win32-x64 packages/vibium clients/javascript; do \
 		cp LICENSE NOTICE "$$pkg/"; \
@@ -72,11 +71,11 @@ package-js: build-go-all build-js
 package-python: build-go-all
 	@echo "Copying binaries to Python platform packages..."
 	mkdir -p packages/python/vibium_linux_x64/src/vibium_linux_x64/bin packages/python/vibium_linux_arm64/src/vibium_linux_arm64/bin packages/python/vibium_darwin_x64/src/vibium_darwin_x64/bin packages/python/vibium_darwin_arm64/src/vibium_darwin_arm64/bin packages/python/vibium_win32_x64/src/vibium_win32_x64/bin
-	cp clicker/bin/clicker-linux-amd64 packages/python/vibium_linux_x64/src/vibium_linux_x64/bin/clicker
-	cp clicker/bin/clicker-linux-arm64 packages/python/vibium_linux_arm64/src/vibium_linux_arm64/bin/clicker
-	cp clicker/bin/clicker-darwin-amd64 packages/python/vibium_darwin_x64/src/vibium_darwin_x64/bin/clicker
-	cp clicker/bin/clicker-darwin-arm64 packages/python/vibium_darwin_arm64/src/vibium_darwin_arm64/bin/clicker
-	cp clicker/bin/clicker-windows-amd64.exe packages/python/vibium_win32_x64/src/vibium_win32_x64/bin/clicker.exe
+	cp clicker/bin/vibium-linux-amd64 packages/python/vibium_linux_x64/src/vibium_linux_x64/bin/vibium
+	cp clicker/bin/vibium-linux-arm64 packages/python/vibium_linux_arm64/src/vibium_linux_arm64/bin/vibium
+	cp clicker/bin/vibium-darwin-amd64 packages/python/vibium_darwin_x64/src/vibium_darwin_x64/bin/vibium
+	cp clicker/bin/vibium-darwin-arm64 packages/python/vibium_darwin_arm64/src/vibium_darwin_arm64/bin/vibium
+	cp clicker/bin/vibium-windows-amd64.exe packages/python/vibium_win32_x64/src/vibium_win32_x64/bin/vibium.exe
 	@echo "Copying LICENSE and NOTICE to Python packages..."
 	@for pkg in packages/python/vibium_linux_x64 packages/python/vibium_linux_arm64 packages/python/vibium_darwin_x64 packages/python/vibium_darwin_arm64 packages/python/vibium_win32_x64 clients/python; do \
 		cp LICENSE NOTICE "$$pkg/"; \
@@ -100,7 +99,7 @@ package-python: build-go-all
 
 # Install Chrome for Testing (required for tests)
 install-browser: build-go
-	./clicker/bin/clicker$(EXE) install
+	./clicker/bin/vibium$(EXE) install
 
 # Install npm dependencies (skip if node_modules exists)
 deps:
@@ -108,12 +107,12 @@ deps:
 
 # Start the proxy server
 serve: build-go
-	./clicker/bin/clicker$(EXE) serve
+	./clicker/bin/vibium$(EXE) serve
 
 # Run all tests
 test: build install-browser test-cli test-js test-mcp
 
-# Run CLI tests (tests the clicker binary directly)
+# Run CLI tests (tests the vibium binary directly)
 # Process tests run separately with --test-concurrency=1 to avoid interference
 # VIBIUM_ONESHOT=1 ensures tests use one-shot mode (no daemon)
 test-cli: build-go
@@ -161,7 +160,7 @@ endif
 	@sleep 1
 	@echo "Done."
 
-# Clean clicker binaries
+# Clean Go binaries
 clean-go:
 	rm -rf clicker/bin
 
@@ -171,14 +170,14 @@ clean-js:
 
 # Clean built npm packages
 clean-npm-packages:
-	rm -f packages/*/bin/clicker packages/*/bin/clicker.exe
+	rm -f packages/*/bin/vibium packages/*/bin/vibium.exe
 	rm -rf packages/vibium/dist
 	rm -f packages/*/LICENSE packages/*/NOTICE clients/javascript/LICENSE clients/javascript/NOTICE
 
 # Clean Python packages (venv, dist, platform binaries)
 clean-python-packages:
 	rm -rf clients/python/.venv clients/python/dist
-	rm -f packages/python/*/src/*/bin/clicker packages/python/*/src/*/bin/clicker.exe
+	rm -f packages/python/*/src/*/bin/vibium packages/python/*/src/*/bin/vibium.exe
 	rm -rf packages/python/*/dist
 	rm -f packages/python/*/LICENSE packages/python/*/NOTICE clients/python/LICENSE clients/python/NOTICE
 
@@ -248,9 +247,9 @@ help:
 	@echo ""
 	@echo "Build:"
 	@echo "  make                       - Build everything (default)"
-	@echo "  make build-go              - Build clicker binary"
+	@echo "  make build-go              - Build vibium binary"
 	@echo "  make build-js              - Build JS client"
-	@echo "  make build-go-all          - Cross-compile clicker for all platforms"
+	@echo "  make build-go-all          - Cross-compile vibium for all platforms"
 	@echo ""
 	@echo "Package:"
 	@echo "  make package               - Build all packages (npm + Python)"
@@ -275,7 +274,7 @@ help:
 	@echo ""
 	@echo "Clean:"
 	@echo "  make clean                 - Clean binaries and JS dist"
-	@echo "  make clean-go              - Clean clicker binaries"
+	@echo "  make clean-go              - Clean Go binaries"
 	@echo "  make clean-js              - Clean JS client dist"
 	@echo "  make clean-npm-packages    - Clean built npm packages"
 	@echo "  make clean-python-packages - Clean Python packages"

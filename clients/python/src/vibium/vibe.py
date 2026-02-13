@@ -4,7 +4,7 @@ import base64
 from typing import Optional
 
 from .client import BiDiClient
-from .clicker import ClickerProcess
+from .binary import VibiumProcess
 from .element import BoundingBox, Element, ElementInfo
 
 
@@ -14,7 +14,7 @@ class Vibe:
     Provides methods to navigate, interact with elements, and take screenshots.
     """
 
-    def __init__(self, client: BiDiClient, process: Optional[ClickerProcess] = None):
+    def __init__(self, client: BiDiClient, process: Optional[VibiumProcess] = None):
         self._client = client
         self._process = process
         self._context: Optional[str] = None

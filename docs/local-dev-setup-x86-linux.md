@@ -291,11 +291,11 @@ ssh yourusername@<vm-ip>
 
 ```bash
 cd ~/Projects/vibium/clicker
-go build -o bin/clicker ./cmd/clicker
-./bin/clicker --version
-./bin/clicker paths
-./bin/clicker install
-./bin/clicker launch-test
+go build -o bin/vibium ./cmd/clicker
+./bin/vibium --version
+./bin/vibium paths
+./bin/vibium install
+./bin/vibium launch-test
 ```
 
 ---

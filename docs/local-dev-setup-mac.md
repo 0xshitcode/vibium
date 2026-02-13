@@ -354,9 +354,9 @@ git clone https://github.com/VibiumDev/vibium.git
 cd vibium/clicker
 
 # Build and test
-go build -o bin/clicker ./cmd/clicker
-./bin/clicker --version
-./bin/clicker launch-test
+go build -o bin/vibium ./cmd/clicker
+./bin/vibium --version
+./bin/vibium launch-test
 ```
 
 ### Get VM IP for SSH Access

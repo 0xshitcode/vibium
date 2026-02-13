@@ -6,11 +6,11 @@
 const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const { execSync } = require('node:child_process');
-const { CLICKER } = require('../helpers');
+const { VIBIUM } = require('../helpers');
 
 describe('CLI: Page Reading', () => {
   test('text command returns page text', () => {
-    const result = execSync(`${CLICKER} text https://example.com`, {
+    const result = execSync(`${VIBIUM} text https://example.com`, {
       encoding: 'utf-8',
       timeout: 30000,
     });
@@ -18,7 +18,7 @@ describe('CLI: Page Reading', () => {
   });
 
   test('text command with selector returns element text', () => {
-    const result = execSync(`${CLICKER} text https://example.com "h1"`, {
+    const result = execSync(`${VIBIUM} text https://example.com "h1"`, {
       encoding: 'utf-8',
       timeout: 30000,
     });
@@ -26,7 +26,7 @@ describe('CLI: Page Reading', () => {
   });
 
   test('html command returns page HTML', () => {
-    const result = execSync(`${CLICKER} html https://example.com "h1"`, {
+    const result = execSync(`${VIBIUM} html https://example.com "h1"`, {
       encoding: 'utf-8',
       timeout: 30000,
     });
@@ -34,7 +34,7 @@ describe('CLI: Page Reading', () => {
   });
 
   test('html command with --outer returns outer HTML', () => {
-    const result = execSync(`${CLICKER} html https://example.com "h1" --outer`, {
+    const result = execSync(`${VIBIUM} html https://example.com "h1" --outer`, {
       encoding: 'utf-8',
       timeout: 30000,
     });
@@ -43,7 +43,7 @@ describe('CLI: Page Reading', () => {
   });
 
   test('find-all command returns multiple elements', () => {
-    const result = execSync(`${CLICKER} find-all https://example.com "p"`, {
+    const result = execSync(`${VIBIUM} find-all https://example.com "p"`, {
       encoding: 'utf-8',
       timeout: 30000,
     });
@@ -52,7 +52,7 @@ describe('CLI: Page Reading', () => {
   });
 
   test('find-all command with --limit', () => {
-    const result = execSync(`${CLICKER} find-all https://example.com "p" --limit 1`, {
+    const result = execSync(`${VIBIUM} find-all https://example.com "p" --limit 1`, {
       encoding: 'utf-8',
       timeout: 30000,
     });

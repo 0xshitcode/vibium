@@ -32,7 +32,7 @@ make package-python
 ```
 
 This:
-1. Cross-compiles clicker for all platforms
+1. Cross-compiles the vibium binary for all platforms
 2. Copies binaries to platform packages
 3. Creates `.venv-publish` with `twine` if it doesn't exist
 4. Builds wheels for all 6 packages

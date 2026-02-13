@@ -123,7 +123,7 @@ class browser_sync:
         Args:
             headless: Run browser in headless mode (default: visible).
             port: WebSocket port (default: auto-assigned).
-            executable_path: Path to clicker binary (default: auto-detect).
+            executable_path: Path to vibium binary (default: auto-detect).
 
         Returns:
             A VibeSync instance for browser automation.

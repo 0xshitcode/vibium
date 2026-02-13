@@ -7,7 +7,7 @@ This tutorial covers how to manage MCP (Model Context Protocol) servers in Claud
 - Claude Code CLI installed:
   - macOS: `brew install --cask claude-code`
   - npm: `npm install -g @anthropic/claude-code`
-- Vibium installed (`npm install vibium`) or clicker binary built locally
+- Vibium installed (`npm install vibium`) or vibium binary built locally
 
 ## List Installed MCP Servers
 
@@ -36,16 +36,16 @@ claude mcp add vibium -- npx -y vibium mcp
 
 ### Option 2: Using Local Binary
 
-If you built clicker locally:
+If you built vibium locally:
 
 ```bash
-claude mcp add vibium -- /path/to/clicker mcp
+claude mcp add vibium -- /path/to/vibium mcp
 ```
 
 For example, from the vibium repo root:
 
 ```bash
-claude mcp add vibium -- ./clicker/bin/clicker mcp
+claude mcp add vibium -- ./clicker/bin/vibium mcp
 ```
 
 ### Option 2b: Custom Screenshot Directory
@@ -58,19 +58,19 @@ By default, screenshots are saved to:
 To use a different directory:
 
 ```bash
-claude mcp add vibium -- ./clicker/bin/clicker mcp --screenshot-dir ./screenshots
+claude mcp add vibium -- ./clicker/bin/vibium mcp --screenshot-dir ./screenshots
 ```
 
 To disable file saving (base64 inline only):
 
 ```bash
-claude mcp add vibium -- ./clicker/bin/clicker mcp --screenshot-dir ""
+claude mcp add vibium -- ./clicker/bin/vibium mcp --screenshot-dir ""
 ```
 
 ### Option 3: Using Absolute Path
 
 ```bash
-claude mcp add vibium -- $HOME/Projects/vibium/clicker/bin/clicker mcp
+claude mcp add vibium -- $HOME/Projects/vibium/clicker/bin/vibium mcp
 ```
 
 ### Verify Installation
@@ -83,7 +83,7 @@ claude mcp list
 
 You should see:
 ```
-vibium: /path/to/clicker mcp
+vibium: /path/to/vibium mcp
 ```
 
 ## Remove Vibium MCP
@@ -132,7 +132,7 @@ The `inputSchema` (JSON Schema) tells Claude:
 You can inspect exactly what Claude learns:
 
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | ./clicker/bin/clicker mcp | jq .result.tools
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | ./clicker/bin/vibium mcp | jq .result.tools
 ```
 
 **Important:** Tool discovery happens **on startup**. After adding or modifying an MCP server, you must start a new Claude Code session for changes to take effect.
@@ -182,10 +182,10 @@ Claude will use the Vibium MCP tools:
 
 ### MCP server not responding
 
-Check that the clicker binary exists and is executable:
+Check that the vibium binary exists and is executable:
 
 ```bash
-./clicker/bin/clicker mcp --help
+./clicker/bin/vibium mcp --help
 ```
 
 ### Browser fails to launch
@@ -193,16 +193,16 @@ Check that the clicker binary exists and is executable:
 Ensure Chrome for Testing is installed:
 
 ```bash
-./clicker/bin/clicker install
+./clicker/bin/vibium install
 ```
 
 ### View MCP server logs
 
-Run clicker directly to see any error output. You can test the full flow by sending JSON-RPC messages to stdin:
+Run vibium directly to see any error output. You can test the full flow by sending JSON-RPC messages to stdin:
 
 **Initialize the connection:**
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"capabilities":{}}}' | ./clicker/bin/clicker mcp
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"capabilities":{}}}' | ./clicker/bin/vibium mcp
 ```
 
 Expected response:
@@ -215,7 +215,7 @@ Expected response:
 Create a test script to send multiple commands:
 
 ```bash
-cat << 'EOF' | ./clicker/bin/clicker mcp
+cat << 'EOF' | ./clicker/bin/vibium mcp
 {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"capabilities":{}}}
 {"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"browser_launch","arguments":{"headless":false}}}
 {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"browser_navigate","arguments":{"url":"https://example.com"}}}

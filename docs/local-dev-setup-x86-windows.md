@@ -321,8 +321,8 @@ make test
 To verify manually:
 
 ```powershell
-.\clicker\bin\clicker.exe --version
-.\clicker\bin\clicker.exe paths
+.\clicker\bin\vibium.exe --version
+.\clicker\bin\vibium.exe paths
 ```
 
 ---

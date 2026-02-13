@@ -7,12 +7,12 @@
 const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const { execSync } = require('node:child_process');
-const { CLICKER } = require('../helpers');
+const { VIBIUM } = require('../helpers');
 
 describe('CLI: Tab Commands (oneshot errors)', () => {
   test('tabs command fails in oneshot mode', () => {
     assert.throws(() => {
-      execSync(`${CLICKER} tabs`, {
+      execSync(`${VIBIUM} tabs`, {
         encoding: 'utf-8',
         timeout: 5000,
       });
@@ -21,7 +21,7 @@ describe('CLI: Tab Commands (oneshot errors)', () => {
 
   test('tab-new command fails in oneshot mode', () => {
     assert.throws(() => {
-      execSync(`${CLICKER} tab-new`, {
+      execSync(`${VIBIUM} tab-new`, {
         encoding: 'utf-8',
         timeout: 5000,
       });
@@ -30,7 +30,7 @@ describe('CLI: Tab Commands (oneshot errors)', () => {
 
   test('tab-switch command fails in oneshot mode', () => {
     assert.throws(() => {
-      execSync(`${CLICKER} tab-switch 0`, {
+      execSync(`${VIBIUM} tab-switch 0`, {
         encoding: 'utf-8',
         timeout: 5000,
       });
@@ -39,7 +39,7 @@ describe('CLI: Tab Commands (oneshot errors)', () => {
 
   test('tab-close command fails in oneshot mode', () => {
     assert.throws(() => {
-      execSync(`${CLICKER} tab-close`, {
+      execSync(`${VIBIUM} tab-close`, {
         encoding: 'utf-8',
         timeout: 5000,
       });

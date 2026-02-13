@@ -1,12 +1,12 @@
 /**
  * MCP Server Tests
- * Tests the clicker mcp command via stdin/stdout JSON-RPC
+ * Tests the vibium mcp command via stdin/stdout JSON-RPC
  */
 
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
 const { spawn, execFileSync } = require('node:child_process');
-const { CLICKER } = require('../helpers');
+const { VIBIUM } = require('../helpers');
 
 /**
  * Helper to run MCP server and send/receive JSON-RPC messages
@@ -21,7 +21,7 @@ class MCPClient {
 
   start() {
     return new Promise((resolve, reject) => {
-      this.proc = spawn(CLICKER, ['mcp'], {
+      this.proc = spawn(VIBIUM, ['mcp'], {
         stdio: ['pipe', 'pipe', 'pipe'],
       });
 

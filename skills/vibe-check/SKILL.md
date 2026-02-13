@@ -5,49 +5,49 @@ description: Browser automation for AI agents. Use when the user needs to naviga
 
 # Vibium Browser Automation — CLI Reference
 
-The `vibe-check` CLI automates Chrome via the command line. The browser auto-launches on first use (daemon mode keeps it running between commands).
+The `vibium` CLI automates Chrome via the command line. The browser auto-launches on first use (daemon mode keeps it running between commands).
 
 ```
-vibe-check navigate <url> → vibe-check text → vibe-check screenshot -o shot.png
+vibium navigate <url> → vibium text → vibium screenshot -o shot.png
 ```
 
 ## Commands
 
 ### Navigation
-- `vibe-check navigate <url>` — go to a page
-- `vibe-check url` — print current URL
-- `vibe-check title` — print page title
+- `vibium navigate <url>` — go to a page
+- `vibium url` — print current URL
+- `vibium title` — print page title
 
 ### Reading Content
-- `vibe-check text` — get all page text
-- `vibe-check text "<selector>"` — get text of a specific element
-- `vibe-check html` — get page HTML (use `--outer` for outerHTML)
-- `vibe-check find "<selector>"` — element info (tag, text, bounding box)
-- `vibe-check find-all "<selector>"` — all matching elements (`--limit N`)
-- `vibe-check eval "<js>"` — run JavaScript and print result
-- `vibe-check screenshot -o file.png` — capture screenshot
+- `vibium text` — get all page text
+- `vibium text "<selector>"` — get text of a specific element
+- `vibium html` — get page HTML (use `--outer` for outerHTML)
+- `vibium find "<selector>"` — element info (tag, text, bounding box)
+- `vibium find-all "<selector>"` — all matching elements (`--limit N`)
+- `vibium eval "<js>"` — run JavaScript and print result
+- `vibium screenshot -o file.png` — capture screenshot
 
 ### Interaction
-- `vibe-check click "<selector>"` — click an element
-- `vibe-check type "<selector>" "<text>"` — type into an input
-- `vibe-check hover "<selector>"` — hover over an element
-- `vibe-check scroll [direction]` — scroll page (`--amount N`, `--selector`)
-- `vibe-check keys "<combo>"` — press keys (Enter, Control+a, Shift+Tab)
-- `vibe-check select "<selector>" "<value>"` — pick a dropdown option
+- `vibium click "<selector>"` — click an element
+- `vibium type "<selector>" "<text>"` — type into an input
+- `vibium hover "<selector>"` — hover over an element
+- `vibium scroll [direction]` — scroll page (`--amount N`, `--selector`)
+- `vibium keys "<combo>"` — press keys (Enter, Control+a, Shift+Tab)
+- `vibium select "<selector>" "<value>"` — pick a dropdown option
 
 ### Waiting
-- `vibe-check wait "<selector>"` — wait for element (`--state visible|hidden|attached`, `--timeout ms`)
+- `vibium wait "<selector>"` — wait for element (`--state visible|hidden|attached`, `--timeout ms`)
 
 ### Tabs
-- `vibe-check tabs` — list open tabs
-- `vibe-check tab-new [url]` — open new tab
-- `vibe-check tab-switch <index|url>` — switch tab
-- `vibe-check tab-close [index]` — close tab
+- `vibium tabs` — list open tabs
+- `vibium tab-new [url]` — open new tab
+- `vibium tab-switch <index|url>` — switch tab
+- `vibium tab-close [index]` — close tab
 
 ### Daemon
-- `vibe-check daemon start` — start background browser
-- `vibe-check daemon status` — check if running
-- `vibe-check daemon stop` — stop daemon
+- `vibium daemon start` — start background browser
+- `vibium daemon status` — check if running
+- `vibium daemon stop` — stop daemon
 
 ## Global Flags
 
@@ -70,35 +70,35 @@ Use `--oneshot` (or `VIBIUM_ONESHOT=1`) to launch a fresh browser for each comma
 
 **Read a page:**
 ```sh
-vibe-check navigate https://example.com
-vibe-check text
+vibium navigate https://example.com
+vibium text
 ```
 
 **Fill a form:**
 ```sh
-vibe-check navigate https://example.com/login
-vibe-check type "input[name=email]" "user@example.com"
-vibe-check type "input[name=password]" "secret"
-vibe-check click "button[type=submit]"
+vibium navigate https://example.com/login
+vibium type "input[name=email]" "user@example.com"
+vibium type "input[name=password]" "secret"
+vibium click "button[type=submit]"
 ```
 
 **Extract structured data:**
 ```sh
-vibe-check navigate https://example.com
-vibe-check eval "JSON.stringify([...document.querySelectorAll('a')].map(a => a.href))"
+vibium navigate https://example.com
+vibium eval "JSON.stringify([...document.querySelectorAll('a')].map(a => a.href))"
 ```
 
 **Multi-tab workflow:**
 ```sh
-vibe-check tab-new https://docs.example.com
-vibe-check text "h1"
-vibe-check tab-switch 0
+vibium tab-new https://docs.example.com
+vibium text "h1"
+vibium tab-switch 0
 ```
 
 ## Tips
 
 - All click/type/hover actions auto-wait for the element to be actionable
-- Use `vibe-check find` to inspect an element before interacting
-- Use `vibe-check text "<selector>"` to read specific sections
-- `vibe-check eval` is the escape hatch for complex DOM queries
+- Use `vibium find` to inspect an element before interacting
+- Use `vibium text "<selector>"` to read specific sections
+- `vibium eval` is the escape hatch for complex DOM queries
 - Screenshots save to the current directory by default (`-o` to change)

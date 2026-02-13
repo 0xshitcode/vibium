@@ -2,7 +2,7 @@
 
 **Browser automation for AI agents and humans.**
 
-Vibium gives AI agents a browser. Install the `vibe-check` skill and your agent can navigate pages, fill forms, click buttons, and take screenshots — all through simple CLI commands. Also available as an MCP server and as JS/TS and Python client libraries.
+Vibium gives AI agents a browser. Install the `vibium` skill and your agent can navigate pages, fill forms, click buttons, and take screenshots — all through simple CLI commands. Also available as an MCP server and as JS/TS and Python client libraries.
 
 **New here?** [Getting Started Tutorial](docs/tutorials/getting-started.md) — zero to hello world in 5 minutes.
 
@@ -28,7 +28,7 @@ Vibium gives AI agents a browser. Install the `vibe-check` skill and your agent 
           ▼                  ▼
 ┌──────────────────────────────────┐
 │         Vibium binary            │
-│       (vibe-check CLI)           │
+│        (vibium CLI)              │
 │                                  │
 │  ┌───────────┐ ┌──────────────┐  │
 │  │ MCP Server│ │ CLI Commands │  │
@@ -61,20 +61,20 @@ See [internals](docs/explanation/internals.md) for component details.
 
 ```bash
 npm install -g vibium
-npx skills add https://github.com/VibiumDev/vibium --skill vibe-check
+npx skills add https://github.com/VibiumDev/vibium --skill vibium
 ```
 
-The first command installs Vibium and the `vibe-check` binary, and downloads Chrome. The second installs the skill to `{project}/.agents/skills/vibe-check`.
+The first command installs Vibium and the `vibium` binary, and downloads Chrome. The second installs the skill to `{project}/.agents/skills/vibium`.
 
 ### CLI Quick Reference
 
 ```bash
-vibe-check navigate https://example.com   # go to a page
-vibe-check text                            # get page text
-vibe-check click "a"                       # click an element
-vibe-check type "input" "hello"            # type into a field
-vibe-check screenshot -o page.png          # capture screenshot
-vibe-check eval "document.title"           # run JavaScript
+vibium navigate https://example.com   # go to a page
+vibium text                            # get page text
+vibium click "a"                       # click an element
+vibium type "input" "hello"            # type into a field
+vibium screenshot -o page.png          # capture screenshot
+vibium eval "document.title"           # run JavaScript
 ```
 
 Full command list: [SKILL.md](skills/vibe-check/SKILL.md)

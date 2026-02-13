@@ -35,10 +35,10 @@ For project-specific config, create `.gemini/settings.json` in your project dire
 
 ### Option 3: Using Local Binary
 
-If you built clicker locally:
+If you built vibium locally:
 
 ```bash
-gemini mcp add vibium /path/to/clicker mcp
+gemini mcp add vibium /path/to/vibium mcp
 ```
 
 Or in `settings.json`:
@@ -47,7 +47,7 @@ Or in `settings.json`:
 {
   "mcpServers": {
     "vibium": {
-      "command": "/path/to/clicker",
+      "command": "/path/to/vibium",
       "args": ["mcp"]
     }
   }

@@ -6,7 +6,7 @@
 const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const { execSync, execFileSync, spawn } = require('node:child_process');
-const { CLICKER } = require('../helpers');
+const { VIBIUM } = require('../helpers');
 
 /**
  * Get PIDs of Chrome for Testing processes spawned by clicker
@@ -52,7 +52,7 @@ describe('CLI: Process Cleanup', () => {
   test('navigate command cleans up Chrome on completion', async () => {
     const pidsBefore = getClickerChromePids();
 
-    execSync(`${CLICKER} navigate https://example.com`, {
+    execSync(`${VIBIUM} navigate https://example.com`, {
       encoding: 'utf-8',
       timeout: 30000,
     });
@@ -73,7 +73,7 @@ describe('CLI: Process Cleanup', () => {
   test('serve command cleans up on SIGTERM', async () => {
     const pidsBefore = getClickerChromePids();
 
-    const server = spawn(CLICKER, ['serve'], {
+    const server = spawn(VIBIUM, ['serve'], {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 

@@ -12,9 +12,9 @@ Vibium's architecture follows the classic robotics control loop:
 |-------|-----------|---------|
 | **Sense** | Retina | Chrome extension that observes everything |
 | **Think** | Cortex | Memory + navigation planning |
-| **Act** | Clicker | Browser automation via BiDi |
+| **Act** | Vibium | Browser automation via BiDi |
 
-**V1 ships Act (Clicker).** V2 adds Sense and Think.
+**V1 ships Act (Vibium).** V2 adds Sense and Think.
 
 ---
 
@@ -218,7 +218,7 @@ const el = await vibe.find("the blue submit button");
 **Why deferred:** Local-first is V1 priority. Cloud adds operational complexity.
 
 **Deliverables:**
-- Dockerfile.clicker
+- Dockerfile.vibium
 - docker-compose.yml for full stack
 - Fly.io fly.toml and deployment guide
 - GPU machine setup for local models

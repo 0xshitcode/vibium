@@ -6,10 +6,10 @@
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
 const { execSync } = require('node:child_process');
-const { CLICKER } = require('../helpers');
+const { VIBIUM } = require('../helpers');
 
 function clicker(args, opts = {}) {
-  const result = execSync(`${CLICKER} ${args}`, {
+  const result = execSync(`${VIBIUM} ${args}`, {
     encoding: 'utf-8',
     timeout: opts.timeout || 60000,
     env: { ...process.env, ...opts.env },
@@ -24,7 +24,7 @@ function clickerJSON(args, opts = {}) {
 
 function stopDaemon() {
   try {
-    execSync(`${CLICKER} daemon stop`, { encoding: 'utf-8', timeout: 10000 });
+    execSync(`${VIBIUM} daemon stop`, { encoding: 'utf-8', timeout: 10000 });
   } catch (e) {
     // Daemon may not be running
   }

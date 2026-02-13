@@ -3,7 +3,7 @@
 from typing import Optional
 
 from .client import BiDiClient
-from .clicker import ClickerProcess
+from .binary import VibiumProcess
 from .vibe import Vibe
 
 
@@ -27,12 +27,12 @@ class browser:
         Args:
             headless: Run browser in headless mode (default: visible).
             port: WebSocket port (default: auto-assigned).
-            executable_path: Path to clicker binary (default: auto-detect).
+            executable_path: Path to vibium binary (default: auto-detect).
 
         Returns:
             A Vibe instance for browser automation.
         """
-        process = await ClickerProcess.start(
+        process = await VibiumProcess.start(
             headless=headless,
             port=port,
             executable_path=executable_path,

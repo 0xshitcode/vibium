@@ -1,4 +1,4 @@
-"""WebSocket client for communicating with the clicker binary."""
+"""WebSocket client for communicating with the vibium binary."""
 
 import asyncio
 import json

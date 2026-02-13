@@ -1,5 +1,5 @@
 import { spawn, execFileSync, ChildProcess } from 'child_process';
-import { getClickerPath } from './binary';
+import { getVibiumBinPath } from './binary';
 import { TimeoutError, BrowserCrashedError } from '../utils/errors';
 
 export interface ClickerProcessOptions {
@@ -23,7 +23,7 @@ export class ClickerProcess {
   }
 
   static async start(options: ClickerProcessOptions = {}): Promise<ClickerProcess> {
-    const binaryPath = options.executablePath || getClickerPath();
+    const binaryPath = options.executablePath || getVibiumBinPath();
     const port = options.port || 0; // 0 means auto-select
 
     const args = ['serve'];

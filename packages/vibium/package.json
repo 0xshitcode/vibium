@@ -36,7 +36,7 @@
     }
   },
   "bin": {
-    "vibe-check": "bin/cli.js"
+    "vibium": "bin/cli.js"
   },
   "scripts": {
     "postinstall": "node postinstall.js"

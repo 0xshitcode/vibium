@@ -62,7 +62,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install vibium
 ```
 
-This downloads Vibium and the clicker binary for your platform.
+This downloads Vibium and the vibium binary for your platform.
 
 Optionally, pre-download Chrome:
 
