@@ -244,6 +244,63 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 		go r.handleVibiumElWaitFor(session, cmd)
 		return
 
+	// Page-level input commands
+	case "vibium:keyboard.press":
+		go r.handleKeyboardPress(session, cmd)
+		return
+	case "vibium:keyboard.down":
+		go r.handleKeyboardDown(session, cmd)
+		return
+	case "vibium:keyboard.up":
+		go r.handleKeyboardUp(session, cmd)
+		return
+	case "vibium:keyboard.type":
+		go r.handleKeyboardType(session, cmd)
+		return
+	case "vibium:mouse.click":
+		go r.handleMouseClick(session, cmd)
+		return
+	case "vibium:mouse.move":
+		go r.handleMouseMove(session, cmd)
+		return
+	case "vibium:mouse.down":
+		go r.handleMouseDown(session, cmd)
+		return
+	case "vibium:mouse.up":
+		go r.handleMouseUp(session, cmd)
+		return
+	case "vibium:mouse.wheel":
+		go r.handleMouseWheel(session, cmd)
+		return
+	case "vibium:touch.tap":
+		go r.handleTouchTap(session, cmd)
+		return
+
+	// Page-level capture commands
+	case "vibium:page.screenshot":
+		go r.handlePageScreenshot(session, cmd)
+		return
+	case "vibium:page.pdf":
+		go r.handlePagePDF(session, cmd)
+		return
+
+	// Page-level evaluation commands
+	case "vibium:page.eval":
+		go r.handlePageEval(session, cmd)
+		return
+	case "vibium:page.evalHandle":
+		go r.handlePageEvalHandle(session, cmd)
+		return
+	case "vibium:page.addScript":
+		go r.handlePageAddScript(session, cmd)
+		return
+	case "vibium:page.addStyle":
+		go r.handlePageAddStyle(session, cmd)
+		return
+	case "vibium:page.expose":
+		go r.handlePageExpose(session, cmd)
+		return
+
 	// Page-level waiting commands
 	case "vibium:page.waitFor":
 		go r.handlePageWaitFor(session, cmd)

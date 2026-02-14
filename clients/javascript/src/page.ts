@@ -8,6 +8,13 @@ export interface FindOptions {
   timeout?: number;
 }
 
+export interface ScreenshotOptions {
+  /** Capture full scrollable page instead of just the viewport. */
+  fullPage?: boolean;
+  /** Capture a specific region of the page. */
+  clip?: { x: number; y: number; width: number; height: number };
+}
+
 interface VibiumFindResult {
   tag: string;
   text: string;
@@ -24,13 +31,140 @@ interface VibiumFindAllResult {
   count: number;
 }
 
-export class Page {
+/** Page-level keyboard input. */
+export class Keyboard {
   private client: BiDiClient;
   private contextId: string;
 
   constructor(client: BiDiClient, contextId: string) {
     this.client = client;
     this.contextId = contextId;
+  }
+
+  /** Press and release a key. Supports combos like "Control+a". */
+  async press(key: string): Promise<void> {
+    await this.client.send('vibium:keyboard.press', {
+      context: this.contextId,
+      key,
+    });
+  }
+
+  /** Press a key down (without releasing). */
+  async down(key: string): Promise<void> {
+    await this.client.send('vibium:keyboard.down', {
+      context: this.contextId,
+      key,
+    });
+  }
+
+  /** Release a key. */
+  async up(key: string): Promise<void> {
+    await this.client.send('vibium:keyboard.up', {
+      context: this.contextId,
+      key,
+    });
+  }
+
+  /** Type a string of text character by character. */
+  async type(text: string): Promise<void> {
+    await this.client.send('vibium:keyboard.type', {
+      context: this.contextId,
+      text,
+    });
+  }
+}
+
+/** Page-level mouse input. */
+export class Mouse {
+  private client: BiDiClient;
+  private contextId: string;
+
+  constructor(client: BiDiClient, contextId: string) {
+    this.client = client;
+    this.contextId = contextId;
+  }
+
+  /** Click at (x, y) coordinates. */
+  async click(x: number, y: number): Promise<void> {
+    await this.client.send('vibium:mouse.click', {
+      context: this.contextId,
+      x,
+      y,
+    });
+  }
+
+  /** Move mouse to (x, y) coordinates. */
+  async move(x: number, y: number): Promise<void> {
+    await this.client.send('vibium:mouse.move', {
+      context: this.contextId,
+      x,
+      y,
+    });
+  }
+
+  /** Press mouse button down. */
+  async down(): Promise<void> {
+    await this.client.send('vibium:mouse.down', {
+      context: this.contextId,
+    });
+  }
+
+  /** Release mouse button. */
+  async up(): Promise<void> {
+    await this.client.send('vibium:mouse.up', {
+      context: this.contextId,
+    });
+  }
+
+  /** Scroll the mouse wheel. */
+  async wheel(deltaX: number, deltaY: number): Promise<void> {
+    await this.client.send('vibium:mouse.wheel', {
+      context: this.contextId,
+      x: 0,
+      y: 0,
+      deltaX,
+      deltaY,
+    });
+  }
+}
+
+/** Page-level touch input. */
+export class Touch {
+  private client: BiDiClient;
+  private contextId: string;
+
+  constructor(client: BiDiClient, contextId: string) {
+    this.client = client;
+    this.contextId = contextId;
+  }
+
+  /** Tap at (x, y) coordinates. */
+  async tap(x: number, y: number): Promise<void> {
+    await this.client.send('vibium:touch.tap', {
+      context: this.contextId,
+      x,
+      y,
+    });
+  }
+}
+
+export class Page {
+  private client: BiDiClient;
+  private contextId: string;
+
+  /** Page-level keyboard input. */
+  readonly keyboard: Keyboard;
+  /** Page-level mouse input. */
+  readonly mouse: Mouse;
+  /** Page-level touch input. */
+  readonly touch: Touch;
+
+  constructor(client: BiDiClient, contextId: string) {
+    this.client = client;
+    this.contextId = contextId;
+    this.keyboard = new Keyboard(client, contextId);
+    this.mouse = new Mouse(client, contextId);
+    this.touch = new Touch(client, contextId);
   }
 
   /** The browsing context ID for this page. */
@@ -114,15 +248,29 @@ export class Page {
     await this.client.send('vibium:page.close', { context: this.contextId });
   }
 
+  // --- Screenshots & PDF (Phase 5) ---
+
   /** Take a screenshot of the page. Returns a PNG buffer. */
-  async screenshot(): Promise<Buffer> {
-    const result = await this.client.send<ScreenshotResult>('browsingContext.captureScreenshot', {
+  async screenshot(options?: ScreenshotOptions): Promise<Buffer> {
+    const result = await this.client.send<ScreenshotResult>('vibium:page.screenshot', {
+      context: this.contextId,
+      fullPage: options?.fullPage,
+      clip: options?.clip,
+    });
+    return Buffer.from(result.data, 'base64');
+  }
+
+  /** Print the page to PDF. Returns a PDF buffer. Only works in headless mode. */
+  async pdf(): Promise<Buffer> {
+    const result = await this.client.send<{ data: string }>('vibium:page.pdf', {
       context: this.contextId,
     });
     return Buffer.from(result.data, 'base64');
   }
 
-  /** Execute JavaScript in the page context. */
+  // --- Evaluation (Phase 5) ---
+
+  /** Execute JavaScript in the page context (legacy — uses script.callFunction directly). */
   async evaluate<T = unknown>(script: string): Promise<T> {
     const result = await this.client.send<{
       type: string;
@@ -136,6 +284,51 @@ export class Page {
     });
 
     return result.result.value as T;
+  }
+
+  /** Evaluate a JS expression and return the deserialized value. */
+  async eval<T = unknown>(expression: string): Promise<T> {
+    const result = await this.client.send<{ value: T }>('vibium:page.eval', {
+      context: this.contextId,
+      expression,
+    });
+    return result.value;
+  }
+
+  /** Evaluate a JS expression and return a handle ID for the result. */
+  async evalHandle(expression: string): Promise<string> {
+    const result = await this.client.send<{ handle: string }>('vibium:page.evalHandle', {
+      context: this.contextId,
+      expression,
+    });
+    return result.handle;
+  }
+
+  /** Inject a script into the page. Pass a URL or inline JavaScript. */
+  async addScript(source: string): Promise<void> {
+    const isURL = source.startsWith('http://') || source.startsWith('https://') || source.startsWith('//');
+    await this.client.send('vibium:page.addScript', {
+      context: this.contextId,
+      ...(isURL ? { url: source } : { content: source }),
+    });
+  }
+
+  /** Inject a stylesheet into the page. Pass a URL or inline CSS. */
+  async addStyle(source: string): Promise<void> {
+    const isURL = source.startsWith('http://') || source.startsWith('https://') || source.startsWith('//');
+    await this.client.send('vibium:page.addStyle', {
+      context: this.contextId,
+      ...(isURL ? { url: source } : { content: source }),
+    });
+  }
+
+  /** Expose a function on window. The function body is injected as a string. */
+  async expose(name: string, fn: string): Promise<void> {
+    await this.client.send('vibium:page.expose', {
+      context: this.contextId,
+      name,
+      fn,
+    });
   }
 
   // --- Page-level Waiting (Phase 4) ---

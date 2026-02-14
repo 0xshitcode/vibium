@@ -119,16 +119,16 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.keyboard.press(key)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.keyboard.down(key)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.keyboard.up(key)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.keyboard.type(text)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.mouse.click(x,y)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.mouse.move(x,y)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.mouse.down()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.mouse.up()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.mouse.wheel(dx,dy)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.touch.tap(x,y)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.keyboard.press(key)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.keyboard.down(key)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.keyboard.up(key)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.keyboard.type(text)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.mouse.click(x,y)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.mouse.move(x,y)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.mouse.down()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.mouse.up()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.mouse.wheel(dx,dy)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.touch.tap(x,y)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Network Interception (11 commands)
 
@@ -174,9 +174,9 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
 | `page.screenshot()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.screenshot({fullPage})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.screenshot({clip})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.pdf()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.screenshot({fullPage})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.screenshot({clip})` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.pdf()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Cookies & Storage (5 commands)
 
@@ -263,10 +263,10 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
 | `page.eval(expr)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.evalHandle(expr)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.addScript(src)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.addStyle(src)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.expose(name, fn)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.evalHandle(expr)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.addScript(src)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.addStyle(src)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.expose(name, fn)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
 
 ## AI-Native Methods (4 commands)
 

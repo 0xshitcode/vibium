@@ -752,3 +752,286 @@ func (r *Router) resolveElementNoWait(session *BrowserSession, context string, e
 	}
 	return &info, nil
 }
+
+// --- Page-level evaluation handlers ---
+
+// handlePageEval handles vibium:page.eval — evaluates a JS expression and returns the result.
+func (r *Router) handlePageEval(session *BrowserSession, cmd bidiCommand) {
+	expression, _ := cmd.Params["expression"].(string)
+
+	context, err := r.resolveContext(session, cmd.Params)
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	resp, err := r.sendInternalCommand(session, "script.evaluate", map[string]interface{}{
+		"expression":      expression,
+		"target":          map[string]interface{}{"context": context},
+		"awaitPromise":    true,
+		"resultOwnership": "none",
+	})
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	if bidiErr := checkBidiError(resp); bidiErr != nil {
+		r.sendError(session, cmd.ID, bidiErr)
+		return
+	}
+
+	value, err := deserializeScriptResult(resp)
+	if err != nil {
+		r.sendError(session, cmd.ID, fmt.Errorf("eval failed: %w", err))
+		return
+	}
+
+	r.sendSuccess(session, cmd.ID, map[string]interface{}{"value": value})
+}
+
+// handlePageEvalHandle handles vibium:page.evalHandle — evaluates JS and returns a handle ID.
+func (r *Router) handlePageEvalHandle(session *BrowserSession, cmd bidiCommand) {
+	expression, _ := cmd.Params["expression"].(string)
+
+	context, err := r.resolveContext(session, cmd.Params)
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	resp, err := r.sendInternalCommand(session, "script.evaluate", map[string]interface{}{
+		"expression":      expression,
+		"target":          map[string]interface{}{"context": context},
+		"awaitPromise":    true,
+		"resultOwnership": "root",
+	})
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	if bidiErr := checkBidiError(resp); bidiErr != nil {
+		r.sendError(session, cmd.ID, bidiErr)
+		return
+	}
+
+	// Extract the handle from the response
+	var result struct {
+		Result struct {
+			Result struct {
+				Handle string `json:"handle"`
+			} `json:"result"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(resp, &result); err != nil {
+		r.sendError(session, cmd.ID, fmt.Errorf("evalHandle parse failed: %w", err))
+		return
+	}
+
+	r.sendSuccess(session, cmd.ID, map[string]interface{}{"handle": result.Result.Result.Handle})
+}
+
+// handlePageAddScript handles vibium:page.addScript — injects a <script> tag.
+// Accepts "url" (for external script) or "content" (for inline JS).
+func (r *Router) handlePageAddScript(session *BrowserSession, cmd bidiCommand) {
+	url, _ := cmd.Params["url"].(string)
+	content, _ := cmd.Params["content"].(string)
+
+	context, err := r.resolveContext(session, cmd.Params)
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	var script string
+	if url != "" {
+		script = `(url) => {
+			return new Promise((resolve, reject) => {
+				const s = document.createElement('script');
+				s.src = url;
+				s.onload = () => resolve('ok');
+				s.onerror = () => reject(new Error('failed to load script'));
+				document.head.appendChild(s);
+			});
+		}`
+	} else {
+		script = `(content) => {
+			const s = document.createElement('script');
+			s.textContent = content;
+			document.head.appendChild(s);
+			return 'ok';
+		}`
+	}
+
+	arg := url
+	if arg == "" {
+		arg = content
+	}
+
+	params := map[string]interface{}{
+		"functionDeclaration": script,
+		"target":              map[string]interface{}{"context": context},
+		"arguments": []map[string]interface{}{
+			{"type": "string", "value": arg},
+		},
+		"awaitPromise":    true,
+		"resultOwnership": "root",
+	}
+
+	if _, err := r.sendInternalCommand(session, "script.callFunction", params); err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	r.sendSuccess(session, cmd.ID, map[string]interface{}{"added": true})
+}
+
+// handlePageAddStyle handles vibium:page.addStyle — injects a <style> or <link> tag.
+// Accepts "url" (for external stylesheet) or "content" (for inline CSS).
+func (r *Router) handlePageAddStyle(session *BrowserSession, cmd bidiCommand) {
+	url, _ := cmd.Params["url"].(string)
+	content, _ := cmd.Params["content"].(string)
+
+	context, err := r.resolveContext(session, cmd.Params)
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	var script string
+	if url != "" {
+		script = `(url) => {
+			return new Promise((resolve, reject) => {
+				const link = document.createElement('link');
+				link.rel = 'stylesheet';
+				link.href = url;
+				link.onload = () => resolve('ok');
+				link.onerror = () => reject(new Error('failed to load stylesheet'));
+				document.head.appendChild(link);
+			});
+		}`
+	} else {
+		script = `(content) => {
+			const s = document.createElement('style');
+			s.textContent = content;
+			document.head.appendChild(s);
+			return 'ok';
+		}`
+	}
+
+	arg := url
+	if arg == "" {
+		arg = content
+	}
+
+	params := map[string]interface{}{
+		"functionDeclaration": script,
+		"target":              map[string]interface{}{"context": context},
+		"arguments": []map[string]interface{}{
+			{"type": "string", "value": arg},
+		},
+		"awaitPromise":    true,
+		"resultOwnership": "root",
+	}
+
+	if _, err := r.sendInternalCommand(session, "script.callFunction", params); err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	r.sendSuccess(session, cmd.ID, map[string]interface{}{"added": true})
+}
+
+// handlePageExpose handles vibium:page.expose — injects a named function via preload script.
+// Simplified: injects a function that stores calls (no callback channel).
+func (r *Router) handlePageExpose(session *BrowserSession, cmd bidiCommand) {
+	name, _ := cmd.Params["name"].(string)
+	fn, _ := cmd.Params["fn"].(string)
+
+	context, err := r.resolveContext(session, cmd.Params)
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	// Inject the function into the page via script.callFunction
+	script := `(name, fn) => {
+		window[name] = new Function('return ' + fn)();
+		return 'ok';
+	}`
+
+	params := map[string]interface{}{
+		"functionDeclaration": script,
+		"target":              map[string]interface{}{"context": context},
+		"arguments": []map[string]interface{}{
+			{"type": "string", "value": name},
+			{"type": "string", "value": fn},
+		},
+		"awaitPromise":    false,
+		"resultOwnership": "root",
+	}
+
+	if _, err := r.sendInternalCommand(session, "script.callFunction", params); err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	r.sendSuccess(session, cmd.ID, map[string]interface{}{"exposed": true})
+}
+
+// deserializeScriptResult extracts a usable value from a BiDi script result.
+// Handles primitives (string, number, boolean, null, undefined) and objects/arrays.
+func deserializeScriptResult(resp json.RawMessage) (interface{}, error) {
+	var result struct {
+		Result struct {
+			Result struct {
+				Type   string      `json:"type"`
+				Value  interface{} `json:"value"`
+				Handle string      `json:"handle,omitempty"`
+			} `json:"result"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(resp, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse script result: %w", err)
+	}
+
+	r := result.Result.Result
+	switch r.Type {
+	case "null", "undefined":
+		return nil, nil
+	case "string", "number", "boolean":
+		return r.Value, nil
+	case "array":
+		// BiDi returns arrays as {type: "array", value: [{type, value}, ...]}
+		if items, ok := r.Value.([]interface{}); ok {
+			out := make([]interface{}, len(items))
+			for i, item := range items {
+				if m, ok := item.(map[string]interface{}); ok {
+					out[i] = m["value"]
+				} else {
+					out[i] = item
+				}
+			}
+			return out, nil
+		}
+		return r.Value, nil
+	case "object":
+		// BiDi returns objects as {type: "object", value: [[key, {type, value}], ...]}
+		if pairs, ok := r.Value.([]interface{}); ok {
+			out := make(map[string]interface{})
+			for _, pair := range pairs {
+				if kv, ok := pair.([]interface{}); ok && len(kv) == 2 {
+					key, _ := kv[0].(string)
+					if m, ok := kv[1].(map[string]interface{}); ok {
+						out[key] = m["value"]
+					}
+				}
+			}
+			return out, nil
+		}
+		return r.Value, nil
+	default:
+		return r.Value, nil
+	}
+}
