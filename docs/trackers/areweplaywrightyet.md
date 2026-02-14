@@ -100,20 +100,20 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `el.text()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.innerText()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.html()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.value()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.attr(name)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.bounds()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.isVisible()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.isHidden()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.isEnabled()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.isChecked()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.isEditable()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.eval(fn)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.screenshot()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `el.waitFor({state})` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.text()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.innerText()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.html()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.value()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.attr(name)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.bounds()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.isVisible()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.isHidden()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.isEnabled()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.isChecked()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.isEditable()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.eval(fn)` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.screenshot()` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `el.waitFor({state})` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Keyboard & Mouse (10 commands)
 
@@ -229,9 +229,9 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.waitFor(selector)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.wait(ms)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.waitForFunction(fn)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.waitFor(selector)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.wait(ms)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.waitForFunction(fn)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
 | `page.waitForEvent(name)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
 | `page.pause()` | ⬜ | ⬜ | ⬜ | ⬜ | — | ⬜ |
 

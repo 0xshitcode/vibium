@@ -99,18 +99,82 @@ export class ElementSync {
     this.bridge.call('element.dispatchEvent', [this.elementId, eventType, eventInit, options]);
   }
 
+  // --- State methods ---
+
   text(): string {
     const result = this.bridge.call<{ text: string }>('element.text', [this.elementId]);
     return result.text;
   }
 
-  getAttribute(name: string): string | null {
-    const result = this.bridge.call<{ value: string | null }>('element.getAttribute', [this.elementId, name]);
+  innerText(): string {
+    const result = this.bridge.call<{ text: string }>('element.innerText', [this.elementId]);
+    return result.text;
+  }
+
+  html(): string {
+    const result = this.bridge.call<{ html: string }>('element.html', [this.elementId]);
+    return result.html;
+  }
+
+  value(): string {
+    const result = this.bridge.call<{ value: string }>('element.value', [this.elementId]);
     return result.value;
   }
 
-  boundingBox(): BoundingBox {
-    const result = this.bridge.call<{ box: BoundingBox }>('element.boundingBox', [this.elementId]);
+  attr(name: string): string | null {
+    const result = this.bridge.call<{ value: string | null }>('element.attr', [this.elementId, name]);
+    return result.value;
+  }
+
+  getAttribute(name: string): string | null {
+    return this.attr(name);
+  }
+
+  bounds(): BoundingBox {
+    const result = this.bridge.call<{ box: BoundingBox }>('element.bounds', [this.elementId]);
     return result.box;
+  }
+
+  boundingBox(): BoundingBox {
+    return this.bounds();
+  }
+
+  isVisible(): boolean {
+    const result = this.bridge.call<{ visible: boolean }>('element.isVisible', [this.elementId]);
+    return result.visible;
+  }
+
+  isHidden(): boolean {
+    const result = this.bridge.call<{ hidden: boolean }>('element.isHidden', [this.elementId]);
+    return result.hidden;
+  }
+
+  isEnabled(): boolean {
+    const result = this.bridge.call<{ enabled: boolean }>('element.isEnabled', [this.elementId]);
+    return result.enabled;
+  }
+
+  isChecked(): boolean {
+    const result = this.bridge.call<{ checked: boolean }>('element.isChecked', [this.elementId]);
+    return result.checked;
+  }
+
+  isEditable(): boolean {
+    const result = this.bridge.call<{ editable: boolean }>('element.isEditable', [this.elementId]);
+    return result.editable;
+  }
+
+  eval<T = unknown>(fn: string): T {
+    const result = this.bridge.call<{ value: T }>('element.eval', [this.elementId, fn]);
+    return result.value;
+  }
+
+  screenshot(): Buffer {
+    const result = this.bridge.call<{ data: string }>('element.screenshot', [this.elementId]);
+    return Buffer.from(result.data, 'base64');
+  }
+
+  waitFor(options?: { state?: string; timeout?: number }): void {
+    this.bridge.call('element.waitFor', [this.elementId, options]);
   }
 }

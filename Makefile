@@ -129,6 +129,8 @@ test-js: build
 	node --test --test-concurrency=1 tests/js/elements.test.js
 	@echo "━━━ JS Interaction Tests ━━━"
 	node --test --test-concurrency=1 tests/js/interaction.test.js
+	@echo "━━━ JS Element State Tests ━━━"
+	node --test --test-concurrency=1 tests/js/state.test.js
 	@echo "━━━ JS Navigation & Lifecycle Tests ━━━"
 	node --test --test-concurrency=1 tests/js/object-model.test.js tests/js/navigation.test.js tests/js/lifecycle.test.js
 	@echo "━━━ JS Process Tests (sequential) ━━━"

@@ -200,6 +200,61 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 		go r.handleVibiumFindAll(session, cmd)
 		return
 
+	// Element state commands
+	case "vibium:el.text":
+		go r.handleVibiumElText(session, cmd)
+		return
+	case "vibium:el.innerText":
+		go r.handleVibiumElInnerText(session, cmd)
+		return
+	case "vibium:el.html":
+		go r.handleVibiumElHTML(session, cmd)
+		return
+	case "vibium:el.value":
+		go r.handleVibiumElValue(session, cmd)
+		return
+	case "vibium:el.attr":
+		go r.handleVibiumElAttr(session, cmd)
+		return
+	case "vibium:el.bounds":
+		go r.handleVibiumElBounds(session, cmd)
+		return
+	case "vibium:el.isVisible":
+		go r.handleVibiumElIsVisible(session, cmd)
+		return
+	case "vibium:el.isHidden":
+		go r.handleVibiumElIsHidden(session, cmd)
+		return
+	case "vibium:el.isEnabled":
+		go r.handleVibiumElIsEnabled(session, cmd)
+		return
+	case "vibium:el.isChecked":
+		go r.handleVibiumElIsChecked(session, cmd)
+		return
+	case "vibium:el.isEditable":
+		go r.handleVibiumElIsEditable(session, cmd)
+		return
+	case "vibium:el.eval":
+		go r.handleVibiumElEval(session, cmd)
+		return
+	case "vibium:el.screenshot":
+		go r.handleVibiumElScreenshot(session, cmd)
+		return
+	case "vibium:el.waitFor":
+		go r.handleVibiumElWaitFor(session, cmd)
+		return
+
+	// Page-level waiting commands
+	case "vibium:page.waitFor":
+		go r.handlePageWaitFor(session, cmd)
+		return
+	case "vibium:page.wait":
+		go r.handlePageWait(session, cmd)
+		return
+	case "vibium:page.waitForFunction":
+		go r.handlePageWaitForFunction(session, cmd)
+		return
+
 	// Navigation commands
 	case "vibium:page.navigate":
 		go r.handlePageNavigate(session, cmd)

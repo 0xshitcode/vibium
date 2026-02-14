@@ -138,6 +138,50 @@ export class Page {
     return result.result.value as T;
   }
 
+  // --- Page-level Waiting (Phase 4) ---
+
+  /** Wait for a selector to appear on the page. Returns the element when found. */
+  waitFor(selector: string | SelectorOptions, options?: FindOptions): FluentElement {
+    const promise = (async () => {
+      const params: Record<string, unknown> = {
+        context: this.contextId,
+        timeout: options?.timeout,
+      };
+
+      if (typeof selector === 'string') {
+        params.selector = selector;
+      } else {
+        Object.assign(params, selector);
+        if (selector.timeout && !options?.timeout) params.timeout = selector.timeout;
+      }
+
+      const result = await this.client.send<VibiumFindResult>('vibium:page.waitFor', params);
+      const info: ElementInfo = { tag: result.tag, text: result.text, box: result.box };
+      const selectorStr = typeof selector === 'string' ? selector : '';
+      const selectorParams = typeof selector === 'string' ? { selector } : { ...selector };
+      return new Element(this.client, this.contextId, selectorStr, info, undefined, selectorParams);
+    })();
+    return fluent(promise);
+  }
+
+  /** Wait for a fixed amount of time (milliseconds). Discouraged but useful for debugging. */
+  async wait(ms: number): Promise<void> {
+    await this.client.send('vibium:page.wait', {
+      context: this.contextId,
+      ms,
+    });
+  }
+
+  /** Wait until a function returns a truthy value. The fn is polled repeatedly. */
+  async waitForFunction<T = unknown>(fn: string, options?: { timeout?: number }): Promise<T> {
+    const result = await this.client.send<{ value: T }>('vibium:page.waitForFunction', {
+      context: this.contextId,
+      fn,
+      timeout: options?.timeout,
+    });
+    return result.value;
+  }
+
   /** Find an element by CSS selector or semantic options. Waits for element to exist. */
   find(selector: string | SelectorOptions, options?: FindOptions): FluentElement {
     const promise = (async () => {

@@ -1,6 +1,5 @@
 import { BiDiClient } from './bidi';
 import { ElementList, ElementListInfo } from './element-list';
-import { ElementNotFoundError } from './utils/errors';
 
 export interface BoundingBox {
   x: number;
@@ -13,14 +12,6 @@ export interface ElementInfo {
   tag: string;
   text: string;
   box: BoundingBox;
-}
-
-export interface ScriptResult {
-  type: string;
-  result: {
-    type: string;
-    value?: unknown;
-  };
 }
 
 export interface ActionOptions {
@@ -209,71 +200,102 @@ export class Element {
     }));
   }
 
+  // --- Element State (Phase 4) ---
+
+  /** Get the element's textContent (trimmed). */
   async text(): Promise<string> {
-    const result = await this.client.send<ScriptResult>('script.callFunction', {
-      functionDeclaration: `(selector) => {
-        const el = document.querySelector(selector);
-        return el ? (el.textContent || '').trim() : null;
-      }`,
-      target: { context: this.context },
-      arguments: [{ type: 'string', value: this.selector }],
-      awaitPromise: false,
-      resultOwnership: 'root',
-    });
-
-    if (result.result.type === 'null') {
-      throw new ElementNotFoundError(this.selector);
-    }
-
-    return result.result.value as string;
+    const result = await this.client.send<{ text: string }>('vibium:el.text', this.commandParams());
+    return result.text;
   }
 
+  /** Get the element's innerText (rendered text only). */
+  async innerText(): Promise<string> {
+    const result = await this.client.send<{ text: string }>('vibium:el.innerText', this.commandParams());
+    return result.text;
+  }
+
+  /** Get the element's innerHTML. */
+  async html(): Promise<string> {
+    const result = await this.client.send<{ html: string }>('vibium:el.html', this.commandParams());
+    return result.html;
+  }
+
+  /** Get the element's value (for inputs, textareas, selects). */
+  async value(): Promise<string> {
+    const result = await this.client.send<{ value: string }>('vibium:el.value', this.commandParams());
+    return result.value;
+  }
+
+  /** Get an attribute value. Short name for getAttribute. */
+  async attr(name: string): Promise<string | null> {
+    const result = await this.client.send<{ value: string | null }>('vibium:el.attr', this.commandParams({ name }));
+    return result.value;
+  }
+
+  /** Get an attribute value. Alias for attr(). */
   async getAttribute(name: string): Promise<string | null> {
-    const result = await this.client.send<ScriptResult>('script.callFunction', {
-      functionDeclaration: `(selector, attrName) => {
-        const el = document.querySelector(selector);
-        return el ? el.getAttribute(attrName) : null;
-      }`,
-      target: { context: this.context },
-      arguments: [
-        { type: 'string', value: this.selector },
-        { type: 'string', value: name },
-      ],
-      awaitPromise: false,
-      resultOwnership: 'root',
-    });
-
-    if (result.result.type === 'null') {
-      return null;
-    }
-
-    return result.result.value as string;
+    return this.attr(name);
   }
 
+  /** Get the element's bounding box. Short name for boundingBox. */
+  async bounds(): Promise<BoundingBox> {
+    const result = await this.client.send<BoundingBox>('vibium:el.bounds', this.commandParams());
+    return result;
+  }
+
+  /** Get the element's bounding box. Alias for bounds(). */
   async boundingBox(): Promise<BoundingBox> {
-    const result = await this.client.send<ScriptResult>('script.callFunction', {
-      functionDeclaration: `(selector) => {
-        const el = document.querySelector(selector);
-        if (!el) return null;
-        const rect = el.getBoundingClientRect();
-        return JSON.stringify({
-          x: rect.x,
-          y: rect.y,
-          width: rect.width,
-          height: rect.height
-        });
-      }`,
-      target: { context: this.context },
-      arguments: [{ type: 'string', value: this.selector }],
-      awaitPromise: false,
-      resultOwnership: 'root',
-    });
+    return this.bounds();
+  }
 
-    if (result.result.type === 'null') {
-      throw new ElementNotFoundError(this.selector);
-    }
+  /** Check if the element is visible (has dimensions, not display:none/visibility:hidden/opacity:0). */
+  async isVisible(): Promise<boolean> {
+    const result = await this.client.send<{ visible: boolean }>('vibium:el.isVisible', this.commandParams());
+    return result.visible;
+  }
 
-    return JSON.parse(result.result.value as string) as BoundingBox;
+  /** Check if the element is hidden (inverse of isVisible). */
+  async isHidden(): Promise<boolean> {
+    const result = await this.client.send<{ hidden: boolean }>('vibium:el.isHidden', this.commandParams());
+    return result.hidden;
+  }
+
+  /** Check if the element is enabled (not disabled). */
+  async isEnabled(): Promise<boolean> {
+    const result = await this.client.send<{ enabled: boolean }>('vibium:el.isEnabled', this.commandParams());
+    return result.enabled;
+  }
+
+  /** Check if the element is checked (for checkboxes/radios). */
+  async isChecked(): Promise<boolean> {
+    const result = await this.client.send<{ checked: boolean }>('vibium:el.isChecked', this.commandParams());
+    return result.checked;
+  }
+
+  /** Check if the element is editable (not disabled and not readonly). */
+  async isEditable(): Promise<boolean> {
+    const result = await this.client.send<{ editable: boolean }>('vibium:el.isEditable', this.commandParams());
+    return result.editable;
+  }
+
+  /** Evaluate a function with this element as argument. The fn body receives `el`. */
+  async eval<T = unknown>(fn: string): Promise<T> {
+    const result = await this.client.send<{ value: T }>('vibium:el.eval', this.commandParams({ fn }));
+    return result.value;
+  }
+
+  /** Take a screenshot of just this element. Returns a PNG buffer. */
+  async screenshot(): Promise<Buffer> {
+    const result = await this.client.send<{ data: string }>('vibium:el.screenshot', this.commandParams());
+    return Buffer.from(result.data, 'base64');
+  }
+
+  /** Wait for the element to reach a state: "visible", "hidden", "attached", or "detached". */
+  async waitFor(options?: { state?: string; timeout?: number }): Promise<void> {
+    await this.client.send('vibium:el.waitFor', this.commandParams({
+      state: options?.state,
+      timeout: options?.timeout,
+    }));
   }
 
   /** Find a child element by CSS selector or semantic options. Scoped to this element. */
@@ -346,6 +368,7 @@ export class Element {
 
 /** A Promise<Element> that also exposes Element methods for chaining. */
 export type FluentElement = Promise<Element> & {
+  // Interaction
   click(options?: ActionOptions): Promise<void>;
   dblclick(options?: ActionOptions): Promise<void>;
   fill(value: string, options?: ActionOptions): Promise<void>;
@@ -361,15 +384,31 @@ export type FluentElement = Promise<Element> & {
   tap(options?: ActionOptions): Promise<void>;
   scrollIntoView(options?: ActionOptions): Promise<void>;
   dispatchEvent(eventType: string, eventInit?: Record<string, unknown>, options?: ActionOptions): Promise<void>;
+  // State
   text(): Promise<string>;
+  innerText(): Promise<string>;
+  html(): Promise<string>;
+  value(): Promise<string>;
+  attr(name: string): Promise<string | null>;
   getAttribute(name: string): Promise<string | null>;
+  bounds(): Promise<BoundingBox>;
   boundingBox(): Promise<BoundingBox>;
+  isVisible(): Promise<boolean>;
+  isHidden(): Promise<boolean>;
+  isEnabled(): Promise<boolean>;
+  isChecked(): Promise<boolean>;
+  isEditable(): Promise<boolean>;
+  eval<T = unknown>(fn: string): Promise<T>;
+  screenshot(): Promise<Buffer>;
+  waitFor(options?: { state?: string; timeout?: number }): Promise<void>;
+  // Finding
   find(selector: string | SelectorOptions, options?: { timeout?: number }): FluentElement;
   findAll(selector: string | SelectorOptions, options?: { timeout?: number }): Promise<ElementList>;
 };
 
 export function fluent(promise: Promise<Element>): FluentElement {
   const p = promise as FluentElement;
+  // Interaction
   p.click = (opts?) => promise.then(el => el.click(opts));
   p.dblclick = (opts?) => promise.then(el => el.dblclick(opts));
   p.fill = (value, opts?) => promise.then(el => el.fill(value, opts));
@@ -385,9 +424,24 @@ export function fluent(promise: Promise<Element>): FluentElement {
   p.tap = (opts?) => promise.then(el => el.tap(opts));
   p.scrollIntoView = (opts?) => promise.then(el => el.scrollIntoView(opts));
   p.dispatchEvent = (type, init?, opts?) => promise.then(el => el.dispatchEvent(type, init, opts));
+  // State
   p.text = () => promise.then(el => el.text());
+  p.innerText = () => promise.then(el => el.innerText());
+  p.html = () => promise.then(el => el.html());
+  p.value = () => promise.then(el => el.value());
+  p.attr = (name) => promise.then(el => el.attr(name));
   p.getAttribute = (name) => promise.then(el => el.getAttribute(name));
+  p.bounds = () => promise.then(el => el.bounds());
   p.boundingBox = () => promise.then(el => el.boundingBox());
+  p.isVisible = () => promise.then(el => el.isVisible());
+  p.isHidden = () => promise.then(el => el.isHidden());
+  p.isEnabled = () => promise.then(el => el.isEnabled());
+  p.isChecked = () => promise.then(el => el.isChecked());
+  p.isEditable = () => promise.then(el => el.isEditable());
+  p.eval = (fn) => promise.then(el => el.eval(fn));
+  p.screenshot = () => promise.then(el => el.screenshot());
+  p.waitFor = (opts?) => promise.then(el => el.waitFor(opts));
+  // Finding
   p.find = (sel, opts?) => fluent(promise.then(el => el.find(sel, opts)));
   p.findAll = (sel, opts?) => promise.then(el => el.findAll(sel, opts));
   return p;

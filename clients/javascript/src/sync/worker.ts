@@ -188,6 +188,38 @@ async function handleCommand(cmd: Command): Promise<unknown> {
       return { text };
     }
 
+    case 'element.innerText': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const text = await element.innerText();
+      return { text };
+    }
+
+    case 'element.html': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const html = await element.html();
+      return { html };
+    }
+
+    case 'element.value': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const value = await element.value();
+      return { value };
+    }
+
+    case 'element.attr': {
+      const [elementId, name] = cmd.args as [number, string];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const value = await element.attr(name);
+      return { value };
+    }
+
     case 'element.getAttribute': {
       const [elementId, name] = cmd.args as [number, string];
       const element = elements.get(elementId);
@@ -196,12 +228,84 @@ async function handleCommand(cmd: Command): Promise<unknown> {
       return { value };
     }
 
+    case 'element.bounds': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const box = await element.bounds();
+      return { box };
+    }
+
     case 'element.boundingBox': {
       const [elementId] = cmd.args as [number];
       const element = elements.get(elementId);
       if (!element) throw new Error(`Element ${elementId} not found`);
       const box = await element.boundingBox();
       return { box };
+    }
+
+    case 'element.isVisible': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const visible = await element.isVisible();
+      return { visible };
+    }
+
+    case 'element.isHidden': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const hidden = await element.isHidden();
+      return { hidden };
+    }
+
+    case 'element.isEnabled': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const enabled = await element.isEnabled();
+      return { enabled };
+    }
+
+    case 'element.isChecked': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const checked = await element.isChecked();
+      return { checked };
+    }
+
+    case 'element.isEditable': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const editable = await element.isEditable();
+      return { editable };
+    }
+
+    case 'element.eval': {
+      const [elementId, fn] = cmd.args as [number, string];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const value = await element.eval(fn);
+      return { value };
+    }
+
+    case 'element.screenshot': {
+      const [elementId] = cmd.args as [number];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      const buffer = await element.screenshot();
+      return { data: buffer.toString('base64') };
+    }
+
+    case 'element.waitFor': {
+      const [elementId, options] = cmd.args as [number, { state?: string; timeout?: number } | undefined];
+      const element = elements.get(elementId);
+      if (!element) throw new Error(`Element ${elementId} not found`);
+      await element.waitFor(options);
+      return { success: true };
     }
 
     case 'quit': {
