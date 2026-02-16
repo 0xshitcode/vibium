@@ -106,11 +106,16 @@ func (r *Router) OnClientConnect(client *ClientConn) {
 	// Start routing messages from browser to client
 	go r.routeBrowserToClient(session)
 
-	// Subscribe to browsingContext.contextCreated events for onPage/onPopup support.
+	// Subscribe to events for onPage/onPopup, network interception, and dialog handling.
 	// Events are forwarded to the JS client by routeBrowserToClient.
 	go func() {
 		r.sendInternalCommand(session, "session.subscribe", map[string]interface{}{
-			"events": []string{"browsingContext.contextCreated"},
+			"events": []string{
+				"browsingContext.contextCreated",
+				"network.beforeRequestSent",
+				"network.responseCompleted",
+				"browsingContext.userPromptOpened",
+			},
 		})
 	}()
 }
@@ -368,6 +373,34 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 		return
 	case "vibium:page.close":
 		go r.handlePageClose(session, cmd)
+		return
+
+	// Network interception commands
+	case "vibium:page.route":
+		go r.handlePageRoute(session, cmd)
+		return
+	case "vibium:page.unroute":
+		go r.handlePageUnroute(session, cmd)
+		return
+	case "vibium:network.continue":
+		go r.handleNetworkContinue(session, cmd)
+		return
+	case "vibium:network.fulfill":
+		go r.handleNetworkFulfill(session, cmd)
+		return
+	case "vibium:network.abort":
+		go r.handleNetworkAbort(session, cmd)
+		return
+	case "vibium:page.setHeaders":
+		go r.handlePageSetHeaders(session, cmd)
+		return
+
+	// Dialog commands
+	case "vibium:dialog.accept":
+		go r.handleDialogAccept(session, cmd)
+		return
+	case "vibium:dialog.dismiss":
+		go r.handleDialogDismiss(session, cmd)
 		return
 	}
 

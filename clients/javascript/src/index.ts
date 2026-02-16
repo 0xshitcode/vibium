@@ -4,6 +4,9 @@ export { BrowserContext } from './context';
 export { Vibe, FindOptions } from './vibe';
 export { Element, BoundingBox, ElementInfo, ActionOptions, SelectorOptions, FluentElement, fluent } from './element';
 export { ElementList, FilterOptions } from './element-list';
+export { Route } from './route';
+export { Request, Response } from './network';
+export { Dialog } from './dialog';
 
 // Sync API
 export { browserSync, VibeSync, ElementSync } from './sync';

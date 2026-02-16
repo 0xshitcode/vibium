@@ -1,5 +1,5 @@
 /**
- * JS Library Tests: Element Interaction (Phase 3)
+ * JS Library Tests: Element Interaction
  * Tests click, dblclick, fill, type, press, clear, check, uncheck,
  * selectOption, hover, focus, tap, scrollIntoView, dispatchEvent.
  */

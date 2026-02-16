@@ -28,14 +28,14 @@ export class Browser {
           url: string;
           originalOpener?: string;
         };
-        const page = new Page(this.client, params.context);
 
-        if (params.originalOpener) {
-          for (const cb of this.popupCallbacks) {
-            cb(page);
-          }
-        } else {
-          for (const cb of this.pageCallbacks) {
+        // Only create a Page if there are callbacks to deliver it to.
+        // Creating a Page registers event handlers (network, dialog) that
+        // would otherwise leak and interfere with the real Page's handlers.
+        const callbacks = params.originalOpener ? this.popupCallbacks : this.pageCallbacks;
+        if (callbacks.length > 0) {
+          const page = new Page(this.client, params.context);
+          for (const cb of callbacks) {
             cb(page);
           }
         }

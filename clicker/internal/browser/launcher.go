@@ -225,8 +225,11 @@ func createSession(baseURL, chromePath string, headless, verbose bool) (string, 
 	reqBody := map[string]interface{}{
 		"capabilities": map[string]interface{}{
 			"alwaysMatch": map[string]interface{}{
-				"browserName":  "chrome",
-				"webSocketUrl": true,
+				"browserName":              "chrome",
+				"webSocketUrl":             true,
+				"unhandledPromptBehavior": map[string]interface{}{
+					"default": "ignore",
+				},
 				"goog:chromeOptions": map[string]interface{}{
 					"binary":          chromePath,
 					"args":            args,

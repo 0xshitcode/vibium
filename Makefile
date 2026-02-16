@@ -131,8 +131,10 @@ test-js: build
 	node --test --test-concurrency=1 tests/js/interaction.test.js
 	@echo "━━━ JS Element State Tests ━━━"
 	node --test --test-concurrency=1 tests/js/state.test.js
-	@echo "━━━ JS Phase 5 Tests (Keyboard, Mouse, Screenshots, Eval) ━━━"
-	node --test --test-concurrency=1 tests/js/phase5.test.js
+	@echo "━━━ JS Input & Eval Tests (Keyboard, Mouse, Screenshots, Eval) ━━━"
+	node --test --test-concurrency=1 tests/js/input-eval.test.js
+	@echo "━━━ JS Network & Dialog Tests ━━━"
+	node --test --test-concurrency=1 tests/js/network-dialog.test.js
 	@echo "━━━ JS Navigation & Lifecycle Tests ━━━"
 	node --test --test-concurrency=1 tests/js/object-model.test.js tests/js/navigation.test.js tests/js/lifecycle.test.js
 	@echo "━━━ JS Process Tests (sequential) ━━━"

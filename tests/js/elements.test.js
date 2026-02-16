@@ -1,5 +1,5 @@
 /**
- * JS Library Tests: Element Finding (Phase 2)
+ * JS Library Tests: Element Finding
  * Tests findAll, scoped find, semantic selectors, and locator chaining.
  */
 

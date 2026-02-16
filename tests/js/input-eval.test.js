@@ -1,6 +1,6 @@
 /**
- * JS Library Tests: Keyboard, Mouse, Screenshots, Evaluation (Phase 5)
- * Tests page.keyboard, page.mouse, page.touch, page.screenshot (options),
+ * JS Library Tests: Keyboard, Mouse, Screenshots, Evaluation
+ * Tests page.keyboard, page.mouse, page.screenshot (options),
  * page.pdf, page.eval, page.evalHandle, page.addScript, page.addStyle, page.expose.
  */
 
@@ -9,7 +9,7 @@ const assert = require('node:assert');
 
 const { browser } = require('../../clients/javascript/dist');
 
-// --- Milestone 5.1: Keyboard, Mouse, Touch ---
+// --- Keyboard, Mouse ---
 
 describe('Keyboard: page-level input', () => {
   test('keyboard.type() types text into focused input', async () => {
@@ -146,7 +146,7 @@ describe('Mouse: page-level input', () => {
   });
 });
 
-// --- Milestone 5.2: Screenshots & PDF ---
+// --- Screenshots & PDF ---
 
 describe('Screenshots: options', () => {
   test('screenshot() returns a PNG buffer', async () => {
@@ -221,7 +221,7 @@ describe('Screenshots: options', () => {
   });
 });
 
-// --- Milestone 5.3: Evaluation ---
+// --- Evaluation ---
 
 describe('Evaluation: page-level', () => {
   test('eval() evaluates an expression', async () => {
@@ -325,9 +325,9 @@ describe('Evaluation: page-level', () => {
   });
 });
 
-// --- Phase 5 Checkpoint Test ---
+// --- Checkpoint ---
 
-describe('Phase 5 Checkpoint', () => {
+describe('Input & Eval Checkpoint', () => {
   test('keyboard.type, mouse.click, screenshot, eval all work together', async () => {
     const b = await browser.launch({ headless: true });
     try {

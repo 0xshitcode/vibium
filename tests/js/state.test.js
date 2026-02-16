@@ -1,5 +1,5 @@
 /**
- * JS Library Tests: Element State + Waiting (Phase 4)
+ * JS Library Tests: Element State + Waiting
  * Tests el.text, innerText, html, value, attr, bounds, isVisible, isHidden,
  * isEnabled, isChecked, isEditable, eval, screenshot, waitFor.
  * Also tests page.waitFor, page.wait, page.waitForFunction.
@@ -10,7 +10,7 @@ const assert = require('node:assert');
 
 const { browser } = require('../../clients/javascript/dist');
 
-// --- Milestone 4.1: Element State ---
+// --- Element State ---
 
 describe('Element State: text and content', () => {
   test('text() returns textContent', async () => {
@@ -262,7 +262,7 @@ describe('Element State: screenshot', () => {
   });
 });
 
-// --- Milestone 4.2: Page-level Waiting ---
+// --- Page-level Waiting ---
 
 describe('Page Waiting', () => {
   test('waitFor(selector) resolves when element exists', async () => {
@@ -352,9 +352,9 @@ describe('Fluent chaining: state methods', () => {
   });
 });
 
-// --- Checkpoint test (from Phase 4 spec) ---
+// --- Checkpoint ---
 
-describe('Phase 4 Checkpoint', () => {
+describe('Element State Checkpoint', () => {
   test('full checkpoint: state queries + waiting + screenshot', async () => {
     const bro = await browser.launch({ headless: true });
     try {
@@ -392,7 +392,7 @@ describe('Phase 4 Checkpoint', () => {
       assert.ok(buf.length > 0);
 
       await bro.close();
-      console.log('Phase 4 checkpoint passed');
+      console.log('Element state checkpoint passed');
     } catch (e) {
       await bro.close();
       throw e;

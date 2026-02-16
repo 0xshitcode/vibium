@@ -200,7 +200,7 @@ export class Element {
     }));
   }
 
-  // --- Element State (Phase 4) ---
+  // --- Element State ---
 
   /** Get the element's textContent (trimmed). */
   async text(): Promise<string> {

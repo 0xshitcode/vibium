@@ -1,6 +1,6 @@
 # Are We Playwright Yet?
 
-Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, tracked across 6 implementation targets.
+Vibium's Playwright-equivalent API coverage. 157 commands across 23 categories, tracked across 6 implementation targets.
 
 **Legend:** ✅ Done · 🟡 Partial · ⬜ Not started · — N/A
 
@@ -130,19 +130,20 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 | `page.mouse.wheel(dx,dy)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `page.touch.tap(x,y)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
-## Network Interception (11 commands)
+## Network Interception (12 commands)
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.route(pattern, handler)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `route.fulfill(response)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `route.continue(overrides?)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `route.abort(reason?)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.onRequest(fn)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.onResponse(fn)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.setHeaders(headers)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.waitForRequest(pat)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.waitForResponse(pat)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.route(pattern, handler)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `route.fulfill(response)` | 🟡 | ⬜ | ⬜ | ⬜ | — | — |
+| `route.continue(overrides?)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `route.abort(reason?)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.onRequest(fn)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.onResponse(fn)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.setHeaders(headers)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.waitForRequest(pat)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.waitForResponse(pat)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.unroute(pattern)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
 | `page.routeWebSocket(pat)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
 | `page.onWebSocket(fn)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
 
@@ -150,24 +151,24 @@ Vibium's Playwright-equivalent API coverage. 156 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `request.url()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `request.method()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `request.headers()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `request.postData()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `response.status()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `response.headers()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `response.body()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `response.json()` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
+| `request.url()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `request.method()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `request.headers()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `request.postData()` | 🟡 | ⬜ | ⬜ | ⬜ | — | — |
+| `response.status()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `response.headers()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `response.body()` | 🟡 | ⬜ | ⬜ | ⬜ | — | — |
+| `response.json()` | 🟡 | ⬜ | ⬜ | ⬜ | — | — |
 
 ## Dialogs (5 commands)
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.onDialog(fn)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `dialog.accept(text?)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `dialog.dismiss()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `dialog.message()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `dialog.type()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.onDialog(fn)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `dialog.accept(text?)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `dialog.dismiss()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `dialog.message()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
+| `dialog.type()` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
 
 ## Screenshots & PDF (4 commands)
 

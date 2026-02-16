@@ -1,6 +1,10 @@
-import { BiDiClient, ScreenshotResult } from './bidi';
+import { BiDiClient, BiDiEvent, ScreenshotResult } from './bidi';
 import { Element, ElementInfo, SelectorOptions, FluentElement, fluent } from './element';
 import { ElementList, ElementListInfo } from './element-list';
+import { Route } from './route';
+import { Request, Response } from './network';
+import { Dialog } from './dialog';
+import { matchPattern } from './utils/match';
 import { debug } from './utils/debug';
 
 export interface FindOptions {
@@ -159,12 +163,38 @@ export class Page {
   /** Page-level touch input. */
   readonly touch: Touch;
 
+  // Network interception state
+  private routes: { pattern: string; handler: (route: Route) => void; interceptId?: string }[] = [];
+  private requestCallbacks: ((request: Request) => void)[] = [];
+  private responseCallbacks: ((response: Response) => void)[] = [];
+  private dialogCallbacks: ((dialog: Dialog) => void)[] = [];
+  private eventHandler: ((event: BiDiEvent) => void) | null = null;
+  private interceptId: string | null = null;
+
   constructor(client: BiDiClient, contextId: string) {
     this.client = client;
     this.contextId = contextId;
     this.keyboard = new Keyboard(client, contextId);
     this.mouse = new Mouse(client, contextId);
     this.touch = new Touch(client, contextId);
+
+    // Listen for network and dialog events
+    this.eventHandler = (event: BiDiEvent) => {
+      const params = event.params as Record<string, unknown>;
+      const eventContext = params.context as string | undefined;
+
+      // Filter events to this page's context
+      if (eventContext && eventContext !== this.contextId) return;
+
+      if (event.method === 'network.beforeRequestSent') {
+        this.handleBeforeRequestSent(params);
+      } else if (event.method === 'network.responseCompleted') {
+        this.handleResponseCompleted(params);
+      } else if (event.method === 'browsingContext.userPromptOpened') {
+        this.handleUserPromptOpened(params);
+      }
+    };
+    this.client.onEvent(this.eventHandler);
   }
 
   /** The browsing context ID for this page. */
@@ -248,7 +278,7 @@ export class Page {
     await this.client.send('vibium:page.close', { context: this.contextId });
   }
 
-  // --- Screenshots & PDF (Phase 5) ---
+  // --- Screenshots & PDF ---
 
   /** Take a screenshot of the page. Returns a PNG buffer. */
   async screenshot(options?: ScreenshotOptions): Promise<Buffer> {
@@ -268,7 +298,7 @@ export class Page {
     return Buffer.from(result.data, 'base64');
   }
 
-  // --- Evaluation (Phase 5) ---
+  // --- Evaluation ---
 
   /** Execute JavaScript in the page context (legacy — uses script.callFunction directly). */
   async evaluate<T = unknown>(script: string): Promise<T> {
@@ -331,7 +361,7 @@ export class Page {
     });
   }
 
-  // --- Page-level Waiting (Phase 4) ---
+  // --- Page-level Waiting ---
 
   /** Wait for a selector to appear on the page. Returns the element when found. */
   waitFor(selector: string | SelectorOptions, options?: FindOptions): FluentElement {
@@ -433,5 +463,188 @@ export class Page {
     });
 
     return new ElementList(this.client, this.contextId, selector, elements);
+  }
+
+  // --- Network Interception ---
+
+  /**
+   * Intercept network requests matching a URL pattern.
+   * The handler receives a Route object that can fulfill, continue, or abort the request.
+   */
+  async route(pattern: string, handler: (route: Route) => void): Promise<void> {
+    // Register the intercept with the Go proxy (only once for the first route)
+    if (this.interceptId === null) {
+      const result = await this.client.send<{ intercept: string }>('vibium:page.route', {
+        context: this.contextId,
+      });
+      this.interceptId = result.intercept;
+    }
+
+    this.routes.push({ pattern, handler, interceptId: this.interceptId ?? undefined });
+  }
+
+  /** Remove a previously registered route. If no handler given, removes all routes for the pattern. */
+  async unroute(pattern: string): Promise<void> {
+    this.routes = this.routes.filter(r => r.pattern !== pattern);
+
+    // If no routes left, remove the intercept
+    if (this.routes.length === 0 && this.interceptId) {
+      await this.client.send('vibium:page.unroute', {
+        intercept: this.interceptId,
+      });
+      this.interceptId = null;
+    }
+  }
+
+  /** Register a callback for every outgoing request. */
+  onRequest(fn: (request: Request) => void): void {
+    this.requestCallbacks.push(fn);
+  }
+
+  /** Register a callback for every completed response. */
+  onResponse(fn: (response: Response) => void): void {
+    this.responseCallbacks.push(fn);
+  }
+
+  /** Wait for a request matching a URL pattern. */
+  waitForRequest(pattern: string, options?: { timeout?: number }): Promise<Request> {
+    const timeout = options?.timeout ?? 30000;
+    return new Promise<Request>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.requestCallbacks = this.requestCallbacks.filter(cb => cb !== handler);
+        reject(new Error(`Timeout waiting for request matching '${pattern}'`));
+      }, timeout);
+
+      const handler = (request: Request) => {
+        if (matchPattern(pattern, request.url())) {
+          clearTimeout(timer);
+          this.requestCallbacks = this.requestCallbacks.filter(cb => cb !== handler);
+          resolve(request);
+        }
+      };
+      this.requestCallbacks.push(handler);
+    });
+  }
+
+  /** Wait for a response matching a URL pattern. */
+  waitForResponse(pattern: string, options?: { timeout?: number }): Promise<Response> {
+    const timeout = options?.timeout ?? 30000;
+    return new Promise<Response>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.responseCallbacks = this.responseCallbacks.filter(cb => cb !== handler);
+        reject(new Error(`Timeout waiting for response matching '${pattern}'`));
+      }, timeout);
+
+      const handler = (response: Response) => {
+        if (matchPattern(pattern, response.url())) {
+          clearTimeout(timer);
+          this.responseCallbacks = this.responseCallbacks.filter(cb => cb !== handler);
+          resolve(response);
+        }
+      };
+      this.responseCallbacks.push(handler);
+    });
+  }
+
+  /** Set extra HTTP headers for all requests in this page. */
+  async setHeaders(headers: Record<string, string>): Promise<void> {
+    const result = await this.client.send<{ intercept: string; headers: unknown }>('vibium:page.setHeaders', {
+      context: this.contextId,
+      headers,
+    });
+
+    // Store the intercept and headers for auto-continue in the event handler
+    this.routes.push({
+      pattern: '**',
+      handler: (route: Route) => {
+        // Merge custom headers with original request headers
+        const merged = { ...route.request.headers(), ...headers };
+        route.continue({ headers: merged });
+      },
+      interceptId: result.intercept,
+    });
+  }
+
+  /** Intercept WebSocket connections. Not supported by BiDi. */
+  routeWebSocket(_pattern: string, _handler: unknown): never {
+    throw new Error('Not implemented: BiDi does not support WebSocket interception');
+  }
+
+  /** Listen for WebSocket connections. Not supported by BiDi. */
+  onWebSocket(_fn: unknown): never {
+    throw new Error('Not implemented: BiDi does not support WebSocket interception');
+  }
+
+  // --- Dialog Handling ---
+
+  /**
+   * Register a handler for browser dialogs (alert, confirm, prompt).
+   * If no handler is registered, dialogs are automatically dismissed.
+   */
+  onDialog(handler: (dialog: Dialog) => void): void {
+    this.dialogCallbacks.push(handler);
+  }
+
+  // --- Event Handlers (internal) ---
+
+  private handleBeforeRequestSent(params: Record<string, unknown>): void {
+    const isBlocked = params.isBlocked as boolean | undefined;
+    const request = params.request as Record<string, unknown> | undefined;
+    const requestId = request?.request as string | undefined;
+
+    if (isBlocked && requestId) {
+      // This is an intercepted request — match against routes
+      const requestUrl = (request?.url as string) ?? '';
+      const req = new Request(params);
+
+      for (const routeEntry of this.routes) {
+        if (matchPattern(routeEntry.pattern, requestUrl)) {
+          const route = new Route(this.client, requestId, req);
+          // Catch errors from async route handlers (fire-and-forget pattern)
+          try {
+            const result = routeEntry.handler(route) as unknown;
+            if (result && typeof (result as Promise<void>).catch === 'function') {
+              (result as Promise<void>).catch(() => {});
+            }
+          } catch (_) { /* ignore sync errors from handler */ }
+          return;
+        }
+      }
+
+      // No matching route — auto-continue (send directly to Chrome for speed)
+      this.client.send('network.continueRequest', { request: requestId }).catch(() => {});
+    } else {
+      // Not blocked — notify onRequest listeners
+      const req = new Request(params);
+      for (const cb of this.requestCallbacks) {
+        cb(req);
+      }
+    }
+  }
+
+  private handleResponseCompleted(params: Record<string, unknown>): void {
+    const resp = new Response(params);
+    for (const cb of this.responseCallbacks) {
+      cb(resp);
+    }
+  }
+
+  private handleUserPromptOpened(params: Record<string, unknown>): void {
+    const dialog = new Dialog(this.client, this.contextId, params);
+
+    if (this.dialogCallbacks.length > 0) {
+      for (const cb of this.dialogCallbacks) {
+        // Catch errors from async handlers (dialog.accept/dismiss are fire-and-forget)
+        try {
+          const result = cb(dialog) as unknown;
+          if (result && typeof (result as Promise<void>).catch === 'function') {
+            (result as Promise<void>).catch(() => {});
+          }
+        } catch (_) { /* ignore sync errors from handler */ }
+      }
+    } else {
+      // Auto-dismiss if no handler registered (matches Playwright behavior)
+      dialog.dismiss().catch(() => {});
+    }
   }
 }
