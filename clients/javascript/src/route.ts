@@ -1,14 +1,6 @@
 import { BiDiClient } from './bidi';
 import { Request } from './network';
 
-/** Convert JS headers {"Name": "Value"} to BiDi format [{name, value: {type, value}}]. */
-function headersToBidi(headers: Record<string, string>): { name: string; value: { type: string; value: string } }[] {
-  return Object.entries(headers).map(([name, value]) => ({
-    name,
-    value: { type: 'string', value },
-  }));
-}
-
 /** Check if an error is a benign race condition that should be silently ignored. */
 function isRaceConditionError(e: unknown): boolean {
   if (!(e instanceof Error)) return false;
@@ -59,15 +51,13 @@ export class Route {
     postData?: string;
   }): Promise<void> {
     try {
-      // Send network.continueRequest directly (bypasses Go proxy handler for speed)
       const params: Record<string, unknown> = { request: this.requestId };
       if (overrides?.url) params.url = overrides.url;
       if (overrides?.method) params.method = overrides.method;
-      if (overrides?.headers) params.headers = headersToBidi(overrides.headers);
-      if (overrides?.postData) params.body = { type: 'string', value: overrides.postData };
-      await this.client.send('network.continueRequest', params);
+      if (overrides?.headers) params.headers = overrides.headers;
+      if (overrides?.postData) params.postData = overrides.postData;
+      await this.client.send('vibium:network.continue', params);
     } catch (e) {
-      // Silently ignore race conditions (request already handled/closed)
       if (isRaceConditionError(e)) return;
       throw e;
     }
@@ -76,12 +66,10 @@ export class Route {
   /** Abort the request. */
   async abort(): Promise<void> {
     try {
-      // Send network.failRequest directly (bypasses Go proxy handler for speed)
       await this.client.send('network.failRequest', {
         request: this.requestId,
       });
     } catch (e) {
-      // Silently ignore race conditions (request already handled/closed)
       if (isRaceConditionError(e)) return;
       throw e;
     }

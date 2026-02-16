@@ -39,7 +39,6 @@ export class Dialog {
   /** Accept the dialog. For prompt dialogs, optionally provide text. */
   async accept(promptText?: string): Promise<void> {
     try {
-      // Send browsingContext.handleUserPrompt directly (bypasses Go proxy handler for speed)
       const params: Record<string, unknown> = {
         context: this.contextId,
         accept: true,
@@ -47,7 +46,6 @@ export class Dialog {
       if (promptText !== undefined) params.userText = promptText;
       await this.client.send('browsingContext.handleUserPrompt', params);
     } catch (e) {
-      // Silently ignore race conditions (dialog already handled/closed)
       if (isDialogRaceError(e)) return;
       throw e;
     }
@@ -56,13 +54,11 @@ export class Dialog {
   /** Dismiss the dialog (cancel/close). */
   async dismiss(): Promise<void> {
     try {
-      // Send browsingContext.handleUserPrompt directly (bypasses Go proxy handler for speed)
       await this.client.send('browsingContext.handleUserPrompt', {
         context: this.contextId,
         accept: false,
       });
     } catch (e) {
-      // Silently ignore race conditions (dialog already handled/closed)
       if (isDialogRaceError(e)) return;
       throw e;
     }

@@ -611,7 +611,7 @@ export class Page {
         }
       }
 
-      // No matching route — auto-continue (send directly to Chrome for speed)
+      // No matching route — auto-continue
       this.client.send('network.continueRequest', { request: requestId }).catch(() => {});
     } else {
       // Not blocked — notify onRequest listeners
