@@ -7,6 +7,7 @@ export { ElementList, FilterOptions } from './element-list';
 export { Route } from './route';
 export { Request, Response } from './network';
 export { Dialog } from './dialog';
+export { WebSocketInfo } from './websocket';
 
 // Sync API
 export { browserSync, VibeSync, ElementSync } from './sync';

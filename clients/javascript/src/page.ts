@@ -4,6 +4,7 @@ import { ElementList, ElementListInfo } from './element-list';
 import { Route } from './route';
 import { Request, Response } from './network';
 import { Dialog } from './dialog';
+import { WebSocketInfo } from './websocket';
 import { matchPattern } from './utils/match';
 import { debug } from './utils/debug';
 
@@ -168,6 +169,8 @@ export class Page {
   private requestCallbacks: ((request: Request) => void)[] = [];
   private responseCallbacks: ((response: Response) => void)[] = [];
   private dialogCallbacks: ((dialog: Dialog) => void)[] = [];
+  private wsCallbacks: ((ws: WebSocketInfo) => void)[] = [];
+  private wsConnections: Map<number, WebSocketInfo> = new Map();
   private eventHandler: ((event: BiDiEvent) => void) | null = null;
   private interceptId: string | null = null;
   private dataCollectorId: string | null = null;
@@ -193,6 +196,12 @@ export class Page {
         this.handleResponseCompleted(params);
       } else if (event.method === 'browsingContext.userPromptOpened') {
         this.handleUserPromptOpened(params);
+      } else if (event.method === 'vibium:ws.created') {
+        this.handleWsCreated(params);
+      } else if (event.method === 'vibium:ws.message') {
+        this.handleWsMessage(params);
+      } else if (event.method === 'vibium:ws.closed') {
+        this.handleWsClosed(params);
       }
     };
     this.client.onEvent(this.eventHandler);
@@ -512,9 +521,9 @@ export class Page {
 
   /**
    * Remove all listeners for a given event, or all events if no event specified.
-   * Supported events: 'request', 'response', 'dialog'.
+   * Supported events: 'request', 'response', 'dialog', 'websocket'.
    */
-  removeAllListeners(event?: 'request' | 'response' | 'dialog'): void {
+  removeAllListeners(event?: 'request' | 'response' | 'dialog' | 'websocket'): void {
     if (!event || event === 'request') {
       this.requestCallbacks = [];
     }
@@ -523,6 +532,9 @@ export class Page {
     }
     if (!event || event === 'dialog') {
       this.dialogCallbacks = [];
+    }
+    if (!event || event === 'websocket') {
+      this.wsCallbacks = [];
     }
     // Tear down data collector when no request/response listeners and no routes remain
     if (this.requestCallbacks.length === 0 && this.responseCallbacks.length === 0 && this.routes.length === 0) {
@@ -595,9 +607,13 @@ export class Page {
     throw new Error('Not implemented: BiDi does not support WebSocket interception');
   }
 
-  /** Listen for WebSocket connections. Not supported by BiDi. */
-  onWebSocket(_fn: unknown): never {
-    throw new Error('Not implemented: BiDi does not support WebSocket interception');
+  /** Listen for WebSocket connections opened by the page. */
+  onWebSocket(fn: (ws: WebSocketInfo) => void): void {
+    const isFirst = this.wsCallbacks.length === 0;
+    this.wsCallbacks.push(fn);
+    if (isFirst) {
+      this.client.send('vibium:page.onWebSocket', { context: this.contextId }).catch(() => {});
+    }
   }
 
   // --- Dialog Handling ---
@@ -693,6 +709,37 @@ export class Page {
     } else {
       // Auto-dismiss if no handler registered (matches Playwright behavior)
       dialog.dismiss().catch(() => {});
+    }
+  }
+
+  private handleWsCreated(params: Record<string, unknown>): void {
+    const id = params.id as number;
+    const url = params.url as string;
+    const ws = new WebSocketInfo(url);
+    this.wsConnections.set(id, ws);
+    for (const cb of this.wsCallbacks) {
+      cb(ws);
+    }
+  }
+
+  private handleWsMessage(params: Record<string, unknown>): void {
+    const id = params.id as number;
+    const data = params.data as string;
+    const direction = params.direction as 'sent' | 'received';
+    const ws = this.wsConnections.get(id);
+    if (ws) {
+      ws._emitMessage(data, direction);
+    }
+  }
+
+  private handleWsClosed(params: Record<string, unknown>): void {
+    const id = params.id as number;
+    const code = params.code as number | undefined;
+    const reason = params.reason as string | undefined;
+    const ws = this.wsConnections.get(id);
+    if (ws) {
+      ws._emitClose(code, reason);
+      this.wsConnections.delete(id);
     }
   }
 }

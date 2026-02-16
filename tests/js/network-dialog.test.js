@@ -491,20 +491,6 @@ describe('Stubs: WebSocket methods', () => {
       await b.close();
     }
   });
-
-  test('onWebSocket() throws not implemented', async () => {
-    const b = await browser.launch({ headless: true });
-    try {
-      const page = await b.page();
-
-      assert.throws(
-        () => page.onWebSocket(() => {}),
-        /Not implemented/
-      );
-    } finally {
-      await b.close();
-    }
-  });
 });
 
 // --- Checkpoint ---

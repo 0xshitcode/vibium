@@ -147,7 +147,7 @@ Vibium's Playwright-equivalent API coverage. 159 commands across 23 categories, 
 | `page.unroute(pattern)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
 | `page.removeAllListeners(event?)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
 | `page.routeWebSocket(pat)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
-| `page.onWebSocket(fn)` | ⬜ | ⬜ | ⬜ | ⬜ | — | — |
+| `page.onWebSocket(fn)` | ✅ | ⬜ | ⬜ | ⬜ | — | — |
 
 ## Request & Response (8 commands)
 

@@ -27,6 +27,10 @@ type BrowserSession struct {
 	internalCmds   map[int]chan json.RawMessage // id -> response channel
 	internalCmdsMu sync.Mutex
 	nextInternalID int
+
+	// WebSocket monitoring state
+	wsPreloadScriptID string // "" if not installed
+	wsSubscribed      bool   // whether script.message is subscribed
 }
 
 // BiDi command structure for parsing incoming messages
@@ -402,6 +406,11 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 	case "vibium:dialog.dismiss":
 		go r.handleDialogDismiss(session, cmd)
 		return
+
+	// WebSocket monitoring
+	case "vibium:page.onWebSocket":
+		go r.handlePageOnWebSocket(session, cmd)
+		return
 	}
 
 	// Forward standard BiDi commands to browser
@@ -501,6 +510,11 @@ func (r *Router) routeBrowserToClient(session *BrowserSession) {
 				ch <- json.RawMessage(msg)
 				continue
 			}
+		}
+
+		// Check for WebSocket channel events (intercept, don't forward raw script.message)
+		if r.isWsChannelEvent(session, msg) {
+			continue
 		}
 
 		// Forward message to client
