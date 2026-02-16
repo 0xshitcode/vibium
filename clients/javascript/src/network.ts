@@ -3,6 +3,8 @@
  * Wrap BiDi event data for onRequest/onResponse callbacks.
  */
 
+import { BiDiClient } from './bidi';
+
 interface BiDiHeaderEntry {
   name: string;
   value: { type: string; value: string };
@@ -11,9 +13,11 @@ interface BiDiHeaderEntry {
 /** Wraps a BiDi network.beforeRequestSent event. */
 export class Request {
   private data: Record<string, unknown>;
+  private client: BiDiClient | null;
 
-  constructor(data: Record<string, unknown>) {
+  constructor(data: Record<string, unknown>, client?: BiDiClient) {
     this.data = data;
+    this.client = client ?? null;
   }
 
   /** The request URL. */
@@ -41,9 +45,20 @@ export class Request {
     return (req?.request as string) ?? '';
   }
 
-  /** Request body / post data. Not available via BiDi events. */
+  /** Request body / post data. Uses BiDi network.getData when a data collector is active. */
   async postData(): Promise<string | null> {
-    return null;
+    if (!this.client) return null;
+    const reqId = this.requestId();
+    if (!reqId) return null;
+    try {
+      const result = await this.client.send<{ bytes: { type: string; value: string } }>(
+        'network.getData',
+        { dataType: 'request', request: reqId }
+      );
+      return result?.bytes?.value ?? null;
+    } catch {
+      return null;
+    }
   }
 }
 

@@ -154,7 +154,7 @@ await vibe.go("https://example.com")
 | `page.waitForURL(pattern)` | `page.waitForURL()` | BiDi: poll `browsingContext.navigate` events | |
 | `page.waitForLoad(state?)` | `page.waitForLoadState()` | BiDi: `browsingContext.load` / `DOMContentLoaded` events | |
 
-### 2. Pages, Sessions & Contexts (10 commands)
+### 2. Pages, Sessions & Contexts (11 commands)
 
 | Vibium | Playwright equiv | Implementation | Notes |
 |--------|-----------------|----------------|-------|
@@ -166,6 +166,7 @@ await vibe.go("https://example.com")
 | `browser.close()` | `browser.close()` | BiDi: close all contexts + end | |
 | `browser.onPage(fn)` | `context.on('page')` | BiDi: `browsingContext.contextCreated` | New tab/window |
 | `browser.onPopup(fn)` | `page.on('popup')` | BiDi: `browsingContext.contextCreated` (opener) | New popup window |
+| `browser.removeAllListeners(event?)` | `browser.removeAllListeners()` | Client-side: clear callback arrays | Clears 'page' and/or 'popup' listeners |
 | `page.bringToFront()` | `page.bringToFront()` | BiDi: `browsingContext.activate` | Focus this tab |
 | `page.close()` | `page.close()` | BiDi: `browsingContext.close` | Close single page |
 
@@ -292,7 +293,7 @@ vibe.find(placeholder='Search...')
 | `page.mouse.wheel(dx, dy)` | `mouse.wheel()` | BiDi: `input.performActions` scroll | |
 | `page.touch.tap(x, y)` | `touchscreen.tap()` | BiDi: `input.performActions` touch | |
 
-### 8. Network Interception (11 commands)
+### 8. Network Interception (12 commands)
 
 | Vibium | Playwright equiv | Implementation | Notes |
 |--------|-----------------|----------------|-------|
@@ -305,6 +306,7 @@ vibe.find(placeholder='Search...')
 | `page.setHeaders(headers)` | `page.setExtraHTTPHeaders()` | BiDi: `network.addIntercept` + modify | |
 | `page.waitForRequest(pattern)` | `page.waitForRequest()` | BiDi: subscribe + filter | |
 | `page.waitForResponse(pattern)` | `page.waitForResponse()` | BiDi: subscribe + filter | |
+| `page.removeAllListeners(event?)` | `page.removeAllListeners()` | Client-side: clear callback arrays + teardown data collector | Clears 'request', 'response', and/or 'dialog' listeners |
 | `page.routeWebSocket(pattern)` | `page.routeWebSocket()` | BiDi: intercept WebSocket frames | Mock WebSocket connections |
 | `page.onWebSocket(fn)` | `page.on('websocket')` | BiDi: WebSocket events | |
 
@@ -315,7 +317,7 @@ vibe.find(placeholder='Search...')
 | `request.url()` | `request.url()` | BiDi: from `network.beforeRequestSent` data | |
 | `request.method()` | `request.method()` | BiDi: from request data | GET, POST, etc. |
 | `request.headers()` | `request.allHeaders()` | BiDi: from request data | |
-| `request.postData()` | `request.postData()` | BiDi: from request body | null if no body |
+| `request.postData()` | `request.postData()` | BiDi: `network.getData` with `network.addDataCollector` | Requires data collector; returns null if no body or unsupported |
 | `response.status()` | `response.status()` | BiDi: from `network.responseCompleted` data | HTTP status code |
 | `response.headers()` | `response.allHeaders()` | BiDi: from response data | |
 | `response.body()` | `response.body()` | BiDi: from response body | Returns Buffer |
@@ -581,13 +583,13 @@ Clock mocking, tracing, storage state serialization, touch input, `evalHandle`, 
 | Category | BiDi-native | JS required | Client | Notes |
 |----------|-------------|-------------|--------|-------|
 | Navigation | ✅ 7/9 | 2 (title, content) | 0 | Strong BiDi coverage |
-| Pages & Contexts | ✅ 10/10 | 0 | 0 | Fully BiDi |
+| Pages & Contexts | 10/11 | 0 | 1 | removeAllListeners is client-side |
 | Element Finding | 6/12 | 6 (role, text, label, placeholder, alt, title) | 0 | Attribute selectors need JS |
 | Locator Chaining | 1/8 | 2 (filter) | 5 | Mostly client-side logic |
 | Element Interaction | 6/16 | 10 | 0 | selectOption, check/uncheck, setFiles need JS |
 | Element State | 1/14 | 12 | 0 | Almost all via script.evaluate |
 | Keyboard & Mouse | ✅ 10/10 | 0 | 0 | Fully BiDi via input.performActions |
-| Network Interception | ✅ 11/11 | 0 | 0 | Fully BiDi — big win |
+| Network Interception | 11/12 | 0 | 1 | removeAllListeners is client-side |
 | Request & Response | ✅ 8/8 | 0 | 0 | Fully BiDi |
 | Dialogs | ✅ 5/5 | 0 | 0 | Fully BiDi |
 | Screenshots & PDF | ✅ 4/4 | 0 | 0 | Fully BiDi |
@@ -601,7 +603,7 @@ Clock mocking, tracing, storage state serialization, touch input, `evalHandle`, 
 | Clock | 0/3 | 3 | 0 | Pure JS injection |
 | Tracing | 1/2 | 1 | 0 | Event recording + screenshots |
 | Evaluation | ✅ 5/5 | 0 | 0 | Core BiDi capability |
-| **Total** | **~86/151** | **~45/151** | **~10/151** | **~57% BiDi native** |
+| **Total** | **~86/153** | **~45/153** | **~12/153** | **~56% BiDi native** |
 
 ---
 

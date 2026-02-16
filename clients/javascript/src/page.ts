@@ -170,6 +170,7 @@ export class Page {
   private dialogCallbacks: ((dialog: Dialog) => void)[] = [];
   private eventHandler: ((event: BiDiEvent) => void) | null = null;
   private interceptId: string | null = null;
+  private dataCollectorId: string | null = null;
 
   constructor(client: BiDiClient, contextId: string) {
     this.client = client;
@@ -480,6 +481,7 @@ export class Page {
       this.interceptId = result.intercept;
     }
 
+    this.ensureDataCollector();
     this.routes.push({ pattern, handler, interceptId: this.interceptId ?? undefined });
   }
 
@@ -498,12 +500,30 @@ export class Page {
 
   /** Register a callback for every outgoing request. */
   onRequest(fn: (request: Request) => void): void {
+    this.ensureDataCollector();
     this.requestCallbacks.push(fn);
   }
 
   /** Register a callback for every completed response. */
   onResponse(fn: (response: Response) => void): void {
     this.responseCallbacks.push(fn);
+  }
+
+  /**
+   * Remove all listeners for a given event, or all events if no event specified.
+   * Supported events: 'request', 'response', 'dialog'.
+   */
+  removeAllListeners(event?: 'request' | 'response' | 'dialog'): void {
+    if (!event || event === 'request') {
+      this.requestCallbacks = [];
+      this.teardownDataCollector();
+    }
+    if (!event || event === 'response') {
+      this.responseCallbacks = [];
+    }
+    if (!event || event === 'dialog') {
+      this.dialogCallbacks = [];
+    }
   }
 
   /** Wait for a request matching a URL pattern. */
@@ -587,6 +607,29 @@ export class Page {
 
   // --- Event Handlers (internal) ---
 
+  private ensureDataCollector(): void {
+    if (this.dataCollectorId !== null) return;
+    this.dataCollectorId = 'pending';
+    this.client.send<{ collector: string }>(
+      'network.addDataCollector',
+      { dataTypes: ['request'], maxEncodedDataSize: 10 * 1024 * 1024 }
+    ).then(result => {
+      this.dataCollectorId = result.collector;
+    }).catch(() => {
+      this.dataCollectorId = null;
+    });
+  }
+
+  private teardownDataCollector(): void {
+    const id = this.dataCollectorId;
+    if (!id || id === 'pending') {
+      this.dataCollectorId = null;
+      return;
+    }
+    this.dataCollectorId = null;
+    this.client.send('network.removeDataCollector', { collector: id }).catch(() => {});
+  }
+
   private handleBeforeRequestSent(params: Record<string, unknown>): void {
     const isBlocked = params.isBlocked as boolean | undefined;
     const request = params.request as Record<string, unknown> | undefined;
@@ -595,7 +638,7 @@ export class Page {
     if (isBlocked && requestId) {
       // This is an intercepted request — match against routes
       const requestUrl = (request?.url as string) ?? '';
-      const req = new Request(params);
+      const req = new Request(params, this.client);
 
       for (const routeEntry of this.routes) {
         if (matchPattern(routeEntry.pattern, requestUrl)) {
@@ -615,7 +658,7 @@ export class Page {
       this.client.send('network.continueRequest', { request: requestId }).catch(() => {});
     } else {
       // Not blocked — notify onRequest listeners
-      const req = new Request(params);
+      const req = new Request(params, this.client);
       for (const cb of this.requestCallbacks) {
         cb(req);
       }

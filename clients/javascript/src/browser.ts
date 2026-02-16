@@ -77,6 +77,19 @@ export class Browser {
     this.popupCallbacks.push(callback);
   }
 
+  /**
+   * Remove all listeners for a given event, or all events if no event specified.
+   * Supported events: 'page', 'popup'.
+   */
+  removeAllListeners(event?: 'page' | 'popup'): void {
+    if (!event || event === 'page') {
+      this.pageCallbacks = [];
+    }
+    if (!event || event === 'popup') {
+      this.popupCallbacks = [];
+    }
+  }
+
   /** Close the browser and clean up. */
   async close(): Promise<void> {
     await this.client.send('vibium:browser.close', {});
