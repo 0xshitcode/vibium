@@ -387,6 +387,14 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 		go r.handleContextAddInitScript(session, cmd)
 		return
 
+	// Frame commands
+	case "vibium:page.frames":
+		go r.handlePageFrames(session, cmd)
+		return
+	case "vibium:page.frame":
+		go r.handlePageFrame(session, cmd)
+		return
+
 	case "vibium:browser.close":
 		go r.handleBrowserClose(session, cmd)
 		return

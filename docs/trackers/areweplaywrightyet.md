@@ -206,10 +206,10 @@ Vibium's Playwright-equivalent API coverage. 159 commands across 23 categories, 
 
 | Command | JS async | JS sync | PY async | PY sync | MCP | CLI |
 |---------|----------|---------|----------|---------|-----|-----|
-| `page.frame(nameOrUrl)` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.frames()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `page.mainFrame()` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| Frames have full Page API | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.frame(nameOrUrl)` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.frames()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `page.mainFrame()` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Frames have full Page API | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Accessibility (4 commands)
 

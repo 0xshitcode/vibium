@@ -278,6 +278,31 @@ export class Page {
     });
   }
 
+  // --- Frames ---
+
+  /** Get all child frames of this page (recursive, flattened). */
+  async frames(): Promise<Page[]> {
+    const result = await this.client.send<{ frames: { context: string; url: string; name: string }[] }>('vibium:page.frames', {
+      context: this.contextId,
+    });
+    return result.frames.map(f => new Page(this.client, f.context));
+  }
+
+  /** Find a frame by name attribute or URL substring. Returns null if not found. */
+  async frame(nameOrUrl: string): Promise<Page | null> {
+    const result = await this.client.send<{ context: string; url: string; name: string } | null>('vibium:page.frame', {
+      context: this.contextId,
+      nameOrUrl,
+    });
+    if (!result || !result.context) return null;
+    return new Page(this.client, result.context);
+  }
+
+  /** Returns this page — the page IS its own main frame. */
+  mainFrame(): Page {
+    return this;
+  }
+
   /** Bring this page/tab to the foreground. */
   async bringToFront(): Promise<void> {
     await this.client.send('browsingContext.activate', { context: this.contextId });

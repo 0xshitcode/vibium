@@ -132,11 +132,11 @@ describe('Mouse: page-level input', () => {
     const b = await browser.launch({ headless: true });
     try {
       const page = await b.page();
-      await page.go('https://the-internet.herokuapp.com/infinite_scroll');
+      await page.go('data:text/html,<body style="margin:0"><div style="height:5000px;background:linear-gradient(red,blue)">Tall</div></body>');
 
       // Scroll down
       await page.mouse.wheel(0, 500);
-      await page.wait(500);
+      await page.wait(300);
 
       const scrollY = await page.evaluate('return window.scrollY;');
       assert.ok(scrollY > 0, `Page should have scrolled down, scrollY: ${scrollY}`);
