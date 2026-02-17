@@ -137,6 +137,8 @@ test-js: build
 	node --test --test-concurrency=1 tests/js/network-dialog.test.js
 	@echo "━━━ JS WebSocket Monitoring Tests ━━━"
 	node --test --test-concurrency=1 tests/js/websocket.test.js
+	@echo "━━━ JS Console & Error Tests ━━━"
+	node --test --test-concurrency=1 tests/js/console-error.test.js
 	@echo "━━━ JS Navigation & Lifecycle Tests ━━━"
 	node --test --test-concurrency=1 tests/js/object-model.test.js tests/js/navigation.test.js tests/js/lifecycle.test.js
 	@echo "━━━ JS Process Tests (sequential) ━━━"

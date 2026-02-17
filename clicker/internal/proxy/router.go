@@ -119,6 +119,7 @@ func (r *Router) OnClientConnect(client *ClientConn) {
 				"network.beforeRequestSent",
 				"network.responseCompleted",
 				"browsingContext.userPromptOpened",
+				"log.entryAdded",
 			},
 		})
 	}()

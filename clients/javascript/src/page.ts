@@ -4,6 +4,7 @@ import { ElementList, ElementListInfo } from './element-list';
 import { Route } from './route';
 import { Request, Response } from './network';
 import { Dialog } from './dialog';
+import { ConsoleMessage } from './console';
 import { WebSocketInfo } from './websocket';
 import { matchPattern } from './utils/match';
 import { debug } from './utils/debug';
@@ -188,6 +189,8 @@ export class Page {
   private requestCallbacks: ((request: Request) => void)[] = [];
   private responseCallbacks: ((response: Response) => void)[] = [];
   private dialogCallbacks: ((dialog: Dialog) => void)[] = [];
+  private consoleCallbacks: ((msg: ConsoleMessage) => void)[] = [];
+  private errorCallbacks: ((error: Error) => void)[] = [];
   private wsCallbacks: ((ws: WebSocketInfo) => void)[] = [];
   private wsConnections: Map<number, WebSocketInfo> = new Map();
   private eventHandler: ((event: BiDiEvent) => void) | null = null;
@@ -215,6 +218,12 @@ export class Page {
         this.handleResponseCompleted(params);
       } else if (event.method === 'browsingContext.userPromptOpened') {
         this.handleUserPromptOpened(params);
+      } else if (event.method === 'log.entryAdded') {
+        // log.entryAdded uses source.context, not params.context
+        const source = params.source as { context?: string } | undefined;
+        const logContext = source?.context;
+        if (logContext && logContext !== this.contextId) return;
+        this.handleLogEntryAdded(params);
       } else if (event.method === 'vibium:ws.created') {
         this.handleWsCreated(params);
       } else if (event.method === 'vibium:ws.message') {
@@ -624,9 +633,9 @@ export class Page {
 
   /**
    * Remove all listeners for a given event, or all events if no event specified.
-   * Supported events: 'request', 'response', 'dialog', 'websocket'.
+   * Supported events: 'request', 'response', 'dialog', 'console', 'error', 'websocket'.
    */
-  removeAllListeners(event?: 'request' | 'response' | 'dialog' | 'websocket'): void {
+  removeAllListeners(event?: 'request' | 'response' | 'dialog' | 'console' | 'error' | 'websocket'): void {
     if (!event || event === 'request') {
       this.requestCallbacks = [];
     }
@@ -635,6 +644,12 @@ export class Page {
     }
     if (!event || event === 'dialog') {
       this.dialogCallbacks = [];
+    }
+    if (!event || event === 'console') {
+      this.consoleCallbacks = [];
+    }
+    if (!event || event === 'error') {
+      this.errorCallbacks = [];
     }
     if (!event || event === 'websocket') {
       this.wsCallbacks = [];
@@ -729,6 +744,16 @@ export class Page {
     this.dialogCallbacks.push(handler);
   }
 
+  /** Register a handler for console messages (console.log, warn, error, etc.). */
+  onConsole(handler: (message: ConsoleMessage) => void): void {
+    this.consoleCallbacks.push(handler);
+  }
+
+  /** Register a handler for uncaught page errors (unhandled exceptions). */
+  onError(handler: (error: Error) => void): void {
+    this.errorCallbacks.push(handler);
+  }
+
   // --- Event Handlers (internal) ---
 
   private ensureDataCollector(): void {
@@ -812,6 +837,23 @@ export class Page {
     } else {
       // Auto-dismiss if no handler registered (matches Playwright behavior)
       dialog.dismiss().catch(() => {});
+    }
+  }
+
+  private handleLogEntryAdded(params: Record<string, unknown>): void {
+    const entryType = params.type as string;
+
+    if (entryType === 'console') {
+      const msg = new ConsoleMessage(params);
+      for (const cb of this.consoleCallbacks) {
+        cb(msg);
+      }
+    } else if (entryType === 'javascript') {
+      const text = (params.text as string) ?? 'Unknown error';
+      const error = new Error(text);
+      for (const cb of this.errorCallbacks) {
+        cb(error);
+      }
     }
   }
 
