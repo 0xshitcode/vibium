@@ -54,11 +54,11 @@ after(() => {
 
 describe('Cookies: context.cookies()', () => {
   test('cookies() returns server-set cookies', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
-      await page.go(`${baseURL}/set-cookie`);
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
+      await vibe.go(`${baseURL}/set-cookie`);
 
       const cookies = await ctx.cookies();
       assert.ok(Array.isArray(cookies), 'cookies() should return an array');
@@ -71,16 +71,16 @@ describe('Cookies: context.cookies()', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('cookies(urls) filters by URL', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
-      await page.go(`${baseURL}/set-cookie`);
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
+      await vibe.go(`${baseURL}/set-cookie`);
 
       // Filter to /sub path — should include another_cookie but not server_cookie (path /)
       // Actually both match because server_cookie has path / which matches everything
@@ -97,7 +97,7 @@ describe('Cookies: context.cookies()', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
@@ -106,11 +106,11 @@ describe('Cookies: context.cookies()', () => {
 
 describe('Cookies: context.setCookies()', () => {
   test('setCookies() creates readable cookies', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
-      await page.go(baseURL);
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
+      await vibe.go(baseURL);
 
       await ctx.setCookies([
         { name: 'test', value: 'val', domain: '127.0.0.1' },
@@ -123,16 +123,16 @@ describe('Cookies: context.setCookies()', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('setCookies() with url (no domain) works', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
-      await page.go(baseURL);
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
+      await vibe.go(baseURL);
 
       await ctx.setCookies([
         { name: 'url_cookie', value: 'from_url', url: baseURL },
@@ -145,7 +145,7 @@ describe('Cookies: context.setCookies()', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
@@ -154,11 +154,11 @@ describe('Cookies: context.setCookies()', () => {
 
 describe('Cookies: context.clearCookies()', () => {
   test('clearCookies() removes all cookies', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
-      await page.go(`${baseURL}/set-cookie`);
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
+      await vibe.go(`${baseURL}/set-cookie`);
 
       // Verify cookies exist
       let cookies = await ctx.cookies();
@@ -173,7 +173,7 @@ describe('Cookies: context.clearCookies()', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
@@ -182,17 +182,17 @@ describe('Cookies: context.clearCookies()', () => {
 
 describe('Storage: context.storageState()', () => {
   test('storageState() returns cookies + localStorage', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
-      await page.go(baseURL);
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
+      await vibe.go(baseURL);
 
       // Set a cookie and localStorage item
       await ctx.setCookies([
         { name: 'state_cookie', value: 'state_val', domain: '127.0.0.1' },
       ]);
-      await page.eval('localStorage.setItem("key1", "value1")');
+      await vibe.eval('localStorage.setItem("key1", "value1")');
 
       const state = await ctx.storageState();
 
@@ -215,7 +215,7 @@ describe('Storage: context.storageState()', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
@@ -224,46 +224,46 @@ describe('Storage: context.storageState()', () => {
 
 describe('Init Scripts: context.addInitScript()', () => {
   test('addInitScript() runs before page scripts', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
+      const ctx = await bro.newContext();
 
       await ctx.addInitScript('window.__injected = "hello from init"');
 
-      const page = await ctx.newPage();
-      await page.go(baseURL);
+      const vibe = await ctx.newPage();
+      await vibe.go(baseURL);
 
-      const value = await page.eval('window.__injected');
+      const value = await vibe.eval('window.__injected');
       assert.strictEqual(value, 'hello from init');
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('addInitScript() persists across navigations', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
+      const ctx = await bro.newContext();
 
       await ctx.addInitScript('window.__persistent = 42');
 
-      const page = await ctx.newPage();
-      await page.go(baseURL);
+      const vibe = await ctx.newPage();
+      await vibe.go(baseURL);
 
-      let value = await page.eval('window.__persistent');
+      let value = await vibe.eval('window.__persistent');
       assert.strictEqual(value, 42);
 
       // Navigate again
-      await page.go(`${baseURL}/sub/page`);
+      await vibe.go(`${baseURL}/sub/page`);
 
-      value = await page.eval('window.__persistent');
+      value = await vibe.eval('window.__persistent');
       assert.strictEqual(value, 42);
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
@@ -272,11 +272,11 @@ describe('Init Scripts: context.addInitScript()', () => {
 
 describe('Cookies & Storage Checkpoint', () => {
   test('setCookies + cookies + clearCookies round-trip', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
-      await page.go(baseURL);
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
+      await vibe.go(baseURL);
 
       await ctx.setCookies([{ name: 'test', value: 'val', url: baseURL }]);
       const cookies = await ctx.cookies();
@@ -288,7 +288,7 @@ describe('Cookies & Storage Checkpoint', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });

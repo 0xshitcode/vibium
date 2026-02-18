@@ -50,10 +50,10 @@ describe('JS Process Cleanup', () => {
   test('async API cleans up Chrome on close()', async () => {
     const pidsBefore = getClickerChromePids();
 
-    const b = await browser.launch({ headless: true });
-    const page = await b.page();
-    await page.go('https://the-internet.herokuapp.com/');
-    await b.close();
+    const bro = await browser.launch({ headless: true });
+    const vibe = await bro.page();
+    await vibe.go('https://the-internet.herokuapp.com/');
+    await bro.close();
 
     await sleep(2000);
 
@@ -71,8 +71,8 @@ describe('JS Process Cleanup', () => {
     const pidsBefore = getClickerChromePids();
 
     const bro = browserSync.launch({ headless: true });
-    const page = bro.page();
-    page.go('https://the-internet.herokuapp.com/');
+    const vibe = bro.page();
+    vibe.go('https://the-internet.herokuapp.com/');
     bro.close();
 
     await sleep(2000);
@@ -92,10 +92,10 @@ describe('JS Process Cleanup', () => {
 
     // Run 3 sessions sequentially
     for (let i = 0; i < 3; i++) {
-      const b = await browser.launch({ headless: true });
-      const page = await b.page();
-      await page.go('https://the-internet.herokuapp.com/');
-      await b.close();
+      const bro = await browser.launch({ headless: true });
+      const vibe = await bro.page();
+      await vibe.go('https://the-internet.herokuapp.com/');
+      await bro.close();
     }
 
     await sleep(2000);

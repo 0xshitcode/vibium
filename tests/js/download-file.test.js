@@ -69,56 +69,56 @@ after(() => {
 
 describe('Downloads: page.onDownload', () => {
   test('onDownload() fires when download link clicked', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go(baseURL);
+      const vibe = await bro.page();
+      await vibe.go(baseURL);
 
       const downloads = [];
-      page.onDownload((dl) => downloads.push(dl));
+      vibe.onDownload((dl) => downloads.push(dl));
 
-      await page.find('#download-link').click();
-      await page.wait(1000);
+      await vibe.find('#download-link').click();
+      await vibe.wait(1000);
 
       assert.ok(downloads.length >= 1, `Expected at least 1 download, got ${downloads.length}`);
       assert.strictEqual(downloads[0].suggestedFilename(), 'test-file.txt');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('download.url() returns the download URL', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go(baseURL);
+      const vibe = await bro.page();
+      await vibe.go(baseURL);
 
       const downloads = [];
-      page.onDownload((dl) => downloads.push(dl));
+      vibe.onDownload((dl) => downloads.push(dl));
 
-      await page.find('#download-link').click();
-      await page.wait(1000);
+      await vibe.find('#download-link').click();
+      await vibe.wait(1000);
 
       assert.ok(downloads.length >= 1);
       assert.ok(downloads[0].url().includes('/download'), `Expected URL to contain /download, got: ${downloads[0].url()}`);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('download.saveAs(path) saves file with correct content', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibium-dl-test-'));
     const savePath = path.join(tmpDir, 'saved-file.txt');
     try {
-      const page = await b.page();
-      await page.go(baseURL);
+      const vibe = await bro.page();
+      await vibe.go(baseURL);
 
       const downloads = [];
-      page.onDownload((dl) => downloads.push(dl));
+      vibe.onDownload((dl) => downloads.push(dl));
 
-      await page.find('#download-link').click();
-      await page.wait(1000);
+      await vibe.find('#download-link').click();
+      await vibe.wait(1000);
 
       assert.ok(downloads.length >= 1, 'Should have received download event');
       await downloads[0].saveAs(savePath);
@@ -127,7 +127,7 @@ describe('Downloads: page.onDownload', () => {
       const content = fs.readFileSync(savePath, 'utf-8');
       assert.strictEqual(content, DOWNLOAD_CONTENT);
     } finally {
-      await b.close();
+      await bro.close();
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   });
@@ -137,21 +137,21 @@ describe('Downloads: page.onDownload', () => {
 
 describe('Element: el.setFiles', () => {
   test('setFiles() sets file on input type=file', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibium-sf-test-'));
     const testFile = path.join(tmpDir, 'upload-test.txt');
     fs.writeFileSync(testFile, 'test upload content');
     try {
-      const page = await b.page();
-      await page.go(baseURL);
+      const vibe = await bro.page();
+      await vibe.go(baseURL);
 
-      await page.find('#file-input').setFiles([testFile]);
-      await page.wait(300);
+      await vibe.find('#file-input').setFiles([testFile]);
+      await vibe.wait(300);
 
-      const fileName = await page.find('#file-name').text();
+      const fileName = await vibe.find('#file-name').text();
       assert.strictEqual(fileName, 'upload-test.txt');
     } finally {
-      await b.close();
+      await bro.close();
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   });
@@ -161,22 +161,22 @@ describe('Element: el.setFiles', () => {
 
 describe('removeAllListeners for download', () => {
   test('removeAllListeners("download") clears download callbacks', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go(baseURL);
+      const vibe = await bro.page();
+      await vibe.go(baseURL);
 
       const downloads = [];
-      page.onDownload((dl) => downloads.push(dl));
+      vibe.onDownload((dl) => downloads.push(dl));
 
-      page.removeAllListeners('download');
+      vibe.removeAllListeners('download');
 
-      await page.find('#download-link').click();
-      await page.wait(1000);
+      await vibe.find('#download-link').click();
+      await vibe.wait(1000);
 
       assert.strictEqual(downloads.length, 0, 'Should not capture downloads after removeAllListeners');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });

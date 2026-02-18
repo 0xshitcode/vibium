@@ -58,28 +58,28 @@ after(() => {
 // --- Tests ---
 
 describe('JS Async API', () => {
-  let b;
+  let bro;
   before(async () => {
-    b = await browser.launch({ headless: true });
+    bro = await browser.launch({ headless: true });
   });
   after(async () => {
-    await b.close();
+    await bro.close();
   });
 
   test('browser.launch() returns a Browser instance', async () => {
-    assert.ok(b, 'Should return a Browser instance');
+    assert.ok(bro, 'Should return a Browser instance');
   });
 
   test('page.go() navigates to URL', async () => {
-    const page = await b.page();
-    await page.go(baseURL);
+    const vibe = await bro.page();
+    await vibe.go(baseURL);
     assert.ok(true);
   });
 
   test('page.screenshot() returns PNG buffer', async () => {
-    const page = await b.page();
-    await page.go(baseURL);
-    const screenshot = await page.screenshot();
+    const vibe = await bro.page();
+    await vibe.go(baseURL);
+    const screenshot = await vibe.screenshot();
 
     assert.ok(Buffer.isBuffer(screenshot), 'Should return a Buffer');
     assert.ok(screenshot.length > 100, 'Screenshot should have reasonable size');
@@ -92,16 +92,16 @@ describe('JS Async API', () => {
   });
 
   test('page.evaluate() executes JavaScript', async () => {
-    const page = await b.page();
-    await page.go(baseURL);
-    const title = await page.evaluate('return document.title');
+    const vibe = await bro.page();
+    await vibe.go(baseURL);
+    const title = await vibe.evaluate('return document.title');
     assert.match(title, /Test App/i, 'Should return page title');
   });
 
   test('page.find() locates element', async () => {
-    const page = await b.page();
-    await page.go(baseURL);
-    const heading = await page.find('h1.heading');
+    const vibe = await bro.page();
+    await vibe.go(baseURL);
+    const heading = await vibe.find('h1.heading');
 
     assert.ok(heading, 'Should return an Element');
     assert.ok(heading.info, 'Element should have info');
@@ -110,31 +110,31 @@ describe('JS Async API', () => {
   });
 
   test('element.click() works', async () => {
-    const page = await b.page();
-    await page.go(baseURL);
-    const link = await page.find('a[href="/subpage"]');
+    const vibe = await bro.page();
+    await vibe.go(baseURL);
+    const link = await vibe.find('a[href="/subpage"]');
     await link.click();
 
-    const heading = await page.find('h3');
+    const heading = await vibe.find('h3');
     assert.match(heading.info.text, /Add\/Remove Elements/i, 'Should have navigated to new page');
   });
 
   test('element.type() enters text', async () => {
-    const page = await b.page();
-    await page.go(`${baseURL}/inputs`);
-    const input = await page.find('input');
+    const vibe = await bro.page();
+    await vibe.go(`${baseURL}/inputs`);
+    const input = await vibe.find('input');
     await input.type('12345');
 
-    const value = await page.evaluate(`
+    const value = await vibe.evaluate(`
       return document.querySelector('input').value;
     `);
     assert.strictEqual(value, '12345', 'Input should have typed value');
   });
 
   test('element.text() returns element text', async () => {
-    const page = await b.page();
-    await page.go(baseURL);
-    const heading = await page.find('h1.heading');
+    const vibe = await bro.page();
+    await vibe.go(baseURL);
+    const heading = await vibe.find('h1.heading');
     const text = await heading.text();
     assert.match(text, /Welcome to test-app/i, 'Should return heading text');
   });

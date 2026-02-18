@@ -111,16 +111,16 @@ function readNetworkEvents(extractedDir) {
 
 describe('Tracing: basic start/stop', () => {
   test('start and stop produces valid trace zip', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     let tmpDir;
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start({ name: 'basic-test' });
-      await page.go(baseURL);
-      await page.find('#btn').click();
-      await page.wait(200);
+      await vibe.go(baseURL);
+      await vibe.find('#btn').click();
+      await vibe.wait(200);
       const zipBuffer = await ctx.tracing.stop();
 
       assert.ok(Buffer.isBuffer(zipBuffer), 'stop() should return a Buffer');
@@ -142,21 +142,21 @@ describe('Tracing: basic start/stop', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       if (tmpDir) cleanupDir(tmpDir);
     }
   });
 
   test('stop with path writes trace to file', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibium-trace-path-'));
     const tracePath = path.join(tmpDir, 'my-trace.zip');
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start();
-      await page.go(baseURL);
+      await vibe.go(baseURL);
       const zipBuffer = await ctx.tracing.stop({ path: tracePath });
 
       assert.ok(fs.existsSync(tracePath), 'trace file should exist at the given path');
@@ -165,7 +165,7 @@ describe('Tracing: basic start/stop', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       cleanupDir(tmpDir);
     }
   });
@@ -173,18 +173,18 @@ describe('Tracing: basic start/stop', () => {
 
 describe('Tracing: screenshots', () => {
   test('screenshots option captures PNG resources', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     let tmpDir;
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start({ screenshots: true });
-      await page.go(baseURL);
+      await vibe.go(baseURL);
       // Wait for some screenshots to be captured
-      await page.wait(500);
-      await page.find('#btn').click();
-      await page.wait(500);
+      await vibe.wait(500);
+      await vibe.find('#btn').click();
+      await vibe.wait(500);
       const zipBuffer = await ctx.tracing.stop();
 
       const { tmpDir: td, extractedDir } = unzipTrace(zipBuffer);
@@ -208,7 +208,7 @@ describe('Tracing: screenshots', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       if (tmpDir) cleanupDir(tmpDir);
     }
   });
@@ -216,15 +216,15 @@ describe('Tracing: screenshots', () => {
 
 describe('Tracing: snapshots', () => {
   test('snapshots option captures HTML resources', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     let tmpDir;
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start({ snapshots: true });
-      await page.go(baseURL);
-      await page.wait(200);
+      await vibe.go(baseURL);
+      await vibe.wait(200);
       const zipBuffer = await ctx.tracing.stop();
 
       const { tmpDir: td, extractedDir } = unzipTrace(zipBuffer);
@@ -245,7 +245,7 @@ describe('Tracing: snapshots', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       if (tmpDir) cleanupDir(tmpDir);
     }
   });
@@ -253,15 +253,15 @@ describe('Tracing: snapshots', () => {
 
 describe('Tracing: chunks', () => {
   test('startChunk/stopChunk produces separate trace zips', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     let tmpDir1, tmpDir2;
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start({ name: 'chunk-test' });
-      await page.go(baseURL);
-      await page.wait(200);
+      await vibe.go(baseURL);
+      await vibe.wait(200);
 
       // Stop first chunk
       const zip1 = await ctx.tracing.stopChunk();
@@ -269,8 +269,8 @@ describe('Tracing: chunks', () => {
 
       // Start second chunk
       await ctx.tracing.startChunk({ name: 'chunk-2' });
-      await page.go(baseURL + '/page2');
-      await page.wait(200);
+      await vibe.go(baseURL + '/page2');
+      await vibe.wait(200);
 
       // Stop second chunk
       const zip2 = await ctx.tracing.stopChunk();
@@ -291,7 +291,7 @@ describe('Tracing: chunks', () => {
       await ctx.tracing.stop();
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       if (tmpDir1) cleanupDir(tmpDir1);
       if (tmpDir2) cleanupDir(tmpDir2);
     }
@@ -300,18 +300,18 @@ describe('Tracing: chunks', () => {
 
 describe('Tracing: groups', () => {
   test('startGroup/stopGroup adds group markers to trace', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     let tmpDir;
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start({ name: 'group-test' });
-      await page.go(baseURL);
+      await vibe.go(baseURL);
 
       await ctx.tracing.startGroup('login flow');
-      await page.find('#btn').click();
-      await page.wait(200);
+      await vibe.find('#btn').click();
+      await vibe.wait(200);
       await ctx.tracing.stopGroup();
 
       const zipBuffer = await ctx.tracing.stop();
@@ -330,7 +330,7 @@ describe('Tracing: groups', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       if (tmpDir) cleanupDir(tmpDir);
     }
   });
@@ -338,15 +338,15 @@ describe('Tracing: groups', () => {
 
 describe('Tracing: network events', () => {
   test('trace captures network events from navigation', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     let tmpDir;
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start({ name: 'network-test' });
-      await page.go(baseURL);
-      await page.wait(500);
+      await vibe.go(baseURL);
+      await vibe.wait(500);
       const zipBuffer = await ctx.tracing.stop();
 
       const { tmpDir: td, extractedDir } = unzipTrace(zipBuffer);
@@ -357,7 +357,7 @@ describe('Tracing: network events', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       if (tmpDir) cleanupDir(tmpDir);
     }
   });
@@ -365,15 +365,15 @@ describe('Tracing: network events', () => {
 
 describe('Tracing: zip structure', () => {
   test('trace zip has correct Playwright-compatible structure', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     let tmpDir;
     try {
-      const ctx = await b.newContext();
-      const page = await ctx.newPage();
+      const ctx = await bro.newContext();
+      const vibe = await ctx.newPage();
 
       await ctx.tracing.start({ screenshots: true, snapshots: true });
-      await page.go(baseURL);
-      await page.wait(500);
+      await vibe.go(baseURL);
+      await vibe.wait(500);
       const zipBuffer = await ctx.tracing.stop();
 
       const { tmpDir: td, extractedDir } = unzipTrace(zipBuffer);
@@ -396,7 +396,7 @@ describe('Tracing: zip structure', () => {
 
       await ctx.close();
     } finally {
-      await b.close();
+      await bro.close();
       if (tmpDir) cleanupDir(tmpDir);
     }
   });

@@ -14,250 +14,250 @@ const { browser } = require('../../clients/javascript/dist');
 
 describe('Element State: text and content', () => {
   test('text() returns textContent', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const text = await h1.text();
       assert.strictEqual(text, 'Example Domain');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('innerText() returns rendered text', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const text = await h1.innerText();
       assert.strictEqual(text, 'Example Domain');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('html() returns innerHTML', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const html = await h1.html();
       assert.strictEqual(html, 'Example Domain');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('value() returns input value', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://the-internet.herokuapp.com/login');
+      const vibe = await bro.page();
+      await vibe.go('https://the-internet.herokuapp.com/login');
 
-      const input = await page.find('#username');
+      const input = await vibe.find('#username');
       await input.fill('testuser');
       const val = await input.value();
       assert.strictEqual(val, 'testuser');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
 
 describe('Element State: attributes', () => {
   test('attr() returns attribute value', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const link = await page.find('a');
+      const link = await vibe.find('a');
       const href = await link.attr('href');
       assert.ok(href.includes('iana.org'), `href should contain iana.org, got: ${href}`);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('attr() returns null for missing attribute', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const val = await h1.attr('data-nonexistent');
       assert.strictEqual(val, null);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('getAttribute() is an alias for attr()', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const link = await page.find('a');
+      const link = await vibe.find('a');
       const attr = await link.attr('href');
       const getAttribute = await link.getAttribute('href');
       assert.strictEqual(attr, getAttribute);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
 
 describe('Element State: bounds', () => {
   test('bounds() returns bounding box', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const box = await h1.bounds();
       assert.ok(typeof box.x === 'number', 'x should be a number');
       assert.ok(typeof box.y === 'number', 'y should be a number');
       assert.ok(box.width > 0, 'width should be > 0');
       assert.ok(box.height > 0, 'height should be > 0');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('boundingBox() is an alias for bounds()', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const bounds = await h1.bounds();
       const boundingBox = await h1.boundingBox();
       assert.deepStrictEqual(bounds, boundingBox);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
 
 describe('Element State: visibility', () => {
   test('isVisible() returns true for visible element', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const visible = await h1.isVisible();
       assert.strictEqual(visible, true);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('isHidden() returns false for visible element', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const hidden = await h1.isHidden();
       assert.strictEqual(hidden, false);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
 
 describe('Element State: enabled/checked/editable', () => {
   test('isEnabled() returns true for enabled input', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://the-internet.herokuapp.com/login');
+      const vibe = await bro.page();
+      await vibe.go('https://the-internet.herokuapp.com/login');
 
-      const input = await page.find('#username');
+      const input = await vibe.find('#username');
       const enabled = await input.isEnabled();
       assert.strictEqual(enabled, true);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('isChecked() returns state of checkbox', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://the-internet.herokuapp.com/checkboxes');
+      const vibe = await bro.page();
+      await vibe.go('https://the-internet.herokuapp.com/checkboxes');
 
-      const checkboxes = await page.findAll('input[type="checkbox"]');
+      const checkboxes = await vibe.findAll('input[type="checkbox"]');
       // First checkbox is unchecked, second is checked
       const firstChecked = await checkboxes.first().isChecked();
       const secondChecked = await checkboxes.nth(1).isChecked();
       assert.strictEqual(firstChecked, false, 'First checkbox should be unchecked');
       assert.strictEqual(secondChecked, true, 'Second checkbox should be checked');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('isEditable() returns true for editable input', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://the-internet.herokuapp.com/login');
+      const vibe = await bro.page();
+      await vibe.go('https://the-internet.herokuapp.com/login');
 
-      const input = await page.find('#username');
+      const input = await vibe.find('#username');
       const editable = await input.isEditable();
       assert.strictEqual(editable, true);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
 
 describe('Element State: eval', () => {
   test('eval() runs function with element', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.find('h1');
+      const h1 = await vibe.find('h1');
       const tagName = await h1.eval('return el.tagName.toLowerCase()');
       assert.strictEqual(tagName, 'h1');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
 
 describe('Element State: screenshot', () => {
   test('screenshot() returns a PNG buffer', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const link = await page.find('a');
+      const link = await vibe.find('a');
       const buf = await link.screenshot();
       assert.ok(buf.length > 0, 'Screenshot buffer should not be empty');
       // PNG magic bytes
       assert.ok(buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47,
         'Screenshot should be a PNG');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
@@ -266,45 +266,45 @@ describe('Element State: screenshot', () => {
 
 describe('Page Waiting', () => {
   test('waitFor(selector) resolves when element exists', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const h1 = await page.waitFor('h1');
+      const h1 = await vibe.waitFor('h1');
       assert.ok(h1, 'waitFor should return an element');
       const text = await h1.text();
       assert.strictEqual(text, 'Example Domain');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('wait(ms) delays execution', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
       const start = Date.now();
-      await page.wait(200);
+      await vibe.wait(200);
       const elapsed = Date.now() - start;
       assert.ok(elapsed >= 150, `Should wait at least 150ms, waited ${elapsed}ms`);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('waitForFunction resolves when function returns truthy', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const result = await page.waitForFunction('() => document.querySelector("h1") !== null');
+      const result = await vibe.waitForFunction('() => document.querySelector("h1") !== null');
       assert.ok(result, 'waitForFunction should return truthy value');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
@@ -313,41 +313,41 @@ describe('Page Waiting', () => {
 
 describe('Fluent chaining: state methods', () => {
   test('find().text() chains fluently', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const text = await page.find('h1').text();
+      const text = await vibe.find('h1').text();
       assert.strictEqual(text, 'Example Domain');
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('find().attr() chains fluently', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const href = await page.find('a').attr('href');
+      const href = await vibe.find('a').attr('href');
       assert.ok(href.includes('iana.org'));
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 
   test('find().isVisible() chains fluently', async () => {
-    const b = await browser.launch({ headless: true });
+    const bro = await browser.launch({ headless: true });
     try {
-      const page = await b.page();
-      await page.go('https://example.com');
+      const vibe = await bro.page();
+      await vibe.go('https://example.com');
 
-      const visible = await page.find('h1').isVisible();
+      const visible = await vibe.find('h1').isVisible();
       assert.strictEqual(visible, true);
     } finally {
-      await b.close();
+      await bro.close();
     }
   });
 });
