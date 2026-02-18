@@ -466,11 +466,22 @@ const handlers: Record<string, Handler> = {
     const page = getPage(pageId);
     await page.route(pattern, async (route) => {
       // Serialize request data for main thread
+      // postData() is async (sends network.getData) which may not be supported
+      // by the proxy, so use a short timeout to avoid hanging indefinitely.
+      let postData: string | null = null;
+      try {
+        postData = await Promise.race([
+          route.request.postData(),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 500)),
+        ]);
+      } catch {
+        // Ignore errors — postData is best-effort
+      }
       const requestData = {
         url: route.request.url(),
         method: route.request.method(),
         headers: route.request.headers(),
-        postData: await route.request.postData(),
+        postData,
       };
 
       // Invoke handler on main thread and get decision

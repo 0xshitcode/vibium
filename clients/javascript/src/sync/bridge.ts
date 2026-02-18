@@ -201,7 +201,7 @@ export class SyncBridge {
 
         if (waitResult === 'timed-out') {
           port1.close();
-          this.terminate();
+          this.terminate();  // terminate() closes callbackPortMain
           return;
         }
 
@@ -210,6 +210,7 @@ export class SyncBridge {
         if (sig === 1) {
           // Quit completed
           port1.close();
+          this.callbackPortMain.close();
           this.terminated = true;
           activeBridges.delete(this);
           this.worker.terminate();
@@ -229,6 +230,7 @@ export class SyncBridge {
   terminate(): void {
     if (this.terminated) return;
     this.terminated = true;
+    this.callbackPortMain.close();
     activeBridges.delete(this);
     this.worker.terminate();
   }
