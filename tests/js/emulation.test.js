@@ -123,6 +123,41 @@ describe('JS Emulation', () => {
     assert.strictEqual(result, 'undefined', 'colorScheme override should be removed');
   });
 
+  // --- setWindow / window ---
+
+  test('window() returns current state and dimensions', async () => {
+    const page = await b.page();
+    const win = await page.window();
+    assert.ok(typeof win.state === 'string', `state should be a string, got ${typeof win.state}`);
+    assert.ok(typeof win.width === 'number' && win.width > 0, `width should be > 0, got ${win.width}`);
+    assert.ok(typeof win.height === 'number' && win.height > 0, `height should be > 0, got ${win.height}`);
+    assert.ok(typeof win.x === 'number', `x should be a number, got ${typeof win.x}`);
+    assert.ok(typeof win.y === 'number', `y should be a number, got ${typeof win.y}`);
+  });
+
+  test('setWindow() resizes the window', async () => {
+    const page = await b.page();
+    await page.setWindow({ width: 900, height: 700 });
+    const win = await page.window();
+    assert.strictEqual(win.width, 900, `width should be 900, got ${win.width}`);
+    assert.strictEqual(win.height, 700, `height should be 700, got ${win.height}`);
+  });
+
+  test('setWindow() moves the window', async () => {
+    const page = await b.page();
+    await page.setWindow({ x: 50, y: 50, width: 800, height: 600 });
+    const win = await page.window();
+    assert.strictEqual(win.x, 50, `x should be 50, got ${win.x}`);
+    assert.strictEqual(win.y, 50, `y should be 50, got ${win.y}`);
+  });
+
+  test('setWindow({ state: "maximized" }) maximizes', async () => {
+    const page = await b.page();
+    await page.setWindow({ state: 'maximized' });
+    const win = await page.window();
+    assert.strictEqual(win.state, 'maximized', `state should be "maximized", got "${win.state}"`);
+  });
+
   // --- setGeolocation ---
 
   test('setGeolocation() overrides position', async () => {

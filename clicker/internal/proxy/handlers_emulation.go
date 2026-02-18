@@ -1,8 +1,11 @@
 package proxy
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 )
 
 // handlePageSetViewport handles vibium:page.setViewport — sets the viewport size.
@@ -215,6 +218,129 @@ func (r *Router) handlePageSetContent(session *BrowserSession, cmd bidiCommand) 
 	}
 
 	r.sendSuccess(session, cmd.ID, map[string]interface{}{})
+}
+
+// handlePageSetWindow handles vibium:page.setWindow — sets the OS browser window size, position, or state.
+// Uses chromedriver's classic WebDriver HTTP API since BiDi browser.setClientWindowState
+// is not yet available in chromedriver 145.
+func (r *Router) handlePageSetWindow(session *BrowserSession, cmd bidiCommand) {
+	state, hasState := cmd.Params["state"].(string)
+	width, hasWidth := cmd.Params["width"].(float64)
+	height, hasHeight := cmd.Params["height"].(float64)
+	x, hasX := cmd.Params["x"].(float64)
+	y, hasY := cmd.Params["y"].(float64)
+
+	baseURL := fmt.Sprintf("http://localhost:%d/session/%s/window", session.LaunchResult.Port, session.LaunchResult.SessionID)
+
+	// Handle named states (maximize, minimize, fullscreen) via dedicated endpoints
+	if hasState && state != "normal" {
+		endpoint := ""
+		switch state {
+		case "maximized":
+			endpoint = baseURL + "/maximize"
+		case "minimized":
+			endpoint = baseURL + "/minimize"
+		case "fullscreen":
+			endpoint = baseURL + "/fullscreen"
+		default:
+			r.sendError(session, cmd.ID, fmt.Errorf("unsupported window state: %s", state))
+			return
+		}
+
+		if err := r.chromedriverPost(endpoint, map[string]interface{}{}); err != nil {
+			r.sendError(session, cmd.ID, err)
+			return
+		}
+		r.sendSuccess(session, cmd.ID, map[string]interface{}{})
+		return
+	}
+
+	// For "normal" state or dimension changes, use /window/rect
+	rect := map[string]interface{}{}
+	if hasWidth {
+		rect["width"] = int(width)
+	}
+	if hasHeight {
+		rect["height"] = int(height)
+	}
+	if hasX {
+		rect["x"] = int(x)
+	}
+	if hasY {
+		rect["y"] = int(y)
+	}
+
+	if err := r.chromedriverPost(baseURL+"/rect", rect); err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+
+	r.sendSuccess(session, cmd.ID, map[string]interface{}{})
+}
+
+// chromedriverPost sends a POST request to a chromedriver classic WebDriver endpoint.
+func (r *Router) chromedriverPost(url string, body map[string]interface{}) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("chromedriver request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("chromedriver error (status %d): %s", resp.StatusCode, string(respBody))
+	}
+
+	return nil
+}
+
+// handlePageWindow handles vibium:page.window — returns the current OS window state and dimensions.
+// Uses BiDi browser.getClientWindows.
+func (r *Router) handlePageWindow(session *BrowserSession, cmd bidiCommand) {
+	resp, err := r.sendInternalCommand(session, "browser.getClientWindows", map[string]interface{}{})
+	if err != nil {
+		r.sendError(session, cmd.ID, err)
+		return
+	}
+	if bidiErr := checkBidiError(resp); bidiErr != nil {
+		r.sendError(session, cmd.ID, bidiErr)
+		return
+	}
+
+	var getResult struct {
+		Result struct {
+			ClientWindows []struct {
+				State  string `json:"state"`
+				X      int    `json:"x"`
+				Y      int    `json:"y"`
+				Width  int    `json:"width"`
+				Height int    `json:"height"`
+			} `json:"clientWindows"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(resp, &getResult); err != nil {
+		r.sendError(session, cmd.ID, fmt.Errorf("failed to parse getClientWindows: %w", err))
+		return
+	}
+	if len(getResult.Result.ClientWindows) == 0 {
+		r.sendError(session, cmd.ID, fmt.Errorf("no client windows available"))
+		return
+	}
+
+	win := getResult.Result.ClientWindows[0]
+	r.sendSuccess(session, cmd.ID, map[string]interface{}{
+		"state":  win.State,
+		"x":      win.X,
+		"y":      win.Y,
+		"width":  win.Width,
+		"height": win.Height,
+	})
 }
 
 // handlePageSetGeolocation handles vibium:page.setGeolocation — overrides geolocation.

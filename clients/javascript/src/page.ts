@@ -390,6 +390,24 @@ export class Page {
     });
   }
 
+  /** Set the OS browser window size, position, or state. */
+  async setWindow(options: {
+    width?: number;
+    height?: number;
+    x?: number;
+    y?: number;
+    state?: 'normal' | 'maximized' | 'minimized' | 'fullscreen';
+  }): Promise<void> {
+    await this.client.send('vibium:page.setWindow', {
+      ...options,
+    });
+  }
+
+  /** Get the current OS browser window state and dimensions. */
+  async window(): Promise<{ state: string; width: number; height: number; x: number; y: number }> {
+    return await this.client.send<{ state: string; width: number; height: number; x: number; y: number }>('vibium:page.window', {});
+  }
+
   // --- Accessibility ---
 
   /** Get the accessibility tree for the page. */

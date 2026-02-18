@@ -425,6 +425,12 @@ func (r *Router) OnClientMessage(client *ClientConn, msg string) {
 	case "vibium:page.setGeolocation":
 		go r.handlePageSetGeolocation(session, cmd)
 		return
+	case "vibium:page.setWindow":
+		go r.handlePageSetWindow(session, cmd)
+		return
+	case "vibium:page.window":
+		go r.handlePageWindow(session, cmd)
+		return
 
 	// Accessibility commands
 	case "vibium:page.a11yTree":

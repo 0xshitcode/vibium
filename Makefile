@@ -145,6 +145,8 @@ test-js: build
 	node --test --test-concurrency=1 tests/js/tracing.test.js
 	@echo "━━━ JS Clock Tests ━━━"
 	node --test --test-concurrency=1 tests/js/clock.test.js
+	@echo "━━━ JS Emulation Tests ━━━"
+	node --test --test-concurrency=1 tests/js/emulation.test.js
 	@echo "━━━ JS Navigation & Lifecycle Tests ━━━"
 	node --test --test-concurrency=1 tests/js/object-model.test.js tests/js/navigation.test.js tests/js/lifecycle.test.js
 	@echo "━━━ JS Process Tests (sequential) ━━━"
