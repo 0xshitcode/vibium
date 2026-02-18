@@ -1,4 +1,4 @@
-import { parentPort, workerData } from 'worker_threads';
+import { parentPort, workerData, MessagePort } from 'worker_threads';
 import { browser, Browser } from '../browser';
 import { Page } from '../page';
 import { BrowserContext } from '../context';
@@ -7,6 +7,7 @@ import { ElementList, FilterOptions } from '../element-list';
 
 interface WorkerData {
   signal: Int32Array;
+  callbackPort: MessagePort;
 }
 
 interface Command {
@@ -17,7 +18,40 @@ interface Command {
 
 type Handler = (args: unknown[]) => Promise<unknown>;
 
-const { signal } = workerData as WorkerData;
+const { signal, callbackPort } = workerData as WorkerData;
+
+// --- Callback mutex ---
+// Ensures only one invokeMainThread call is in flight at a time.
+let callbackChain = Promise.resolve<unknown>(undefined);
+
+/**
+ * Invoke a handler on the main thread and return its decision.
+ * Posts data to the callback port, signals the main thread (signal[0]=2),
+ * then waits for the decision to arrive back via the port.
+ */
+function invokeMainThread(handlerId: string, data: unknown): Promise<unknown> {
+  const call = callbackChain.then(async () => {
+    // Set up message listener BEFORE signaling main thread
+    const decisionPromise = new Promise<unknown>((resolve) => {
+      callbackPort.once('message', (msg: { decision: unknown }) => {
+        resolve(msg.decision);
+      });
+    });
+
+    // Post callback request to main thread
+    callbackPort.postMessage({ handlerId, data });
+
+    // Signal main thread: callback needed
+    Atomics.store(signal, 0, 2);
+    Atomics.notify(signal, 0);
+
+    // Wait for decision via port message (reliable, no Atomics race)
+    return await decisionPromise;
+  });
+  // Chain: next call waits for this one to finish
+  callbackChain = call.then(() => {}, () => {});
+  return call;
+}
 
 // --- Object registries ---
 let browserInstance: Browser | null = null;
@@ -427,6 +461,43 @@ const handlers: Record<string, Handler> = {
     return { success: true };
   },
 
+  'page.routeWithCallback': async (args) => {
+    const [pageId, pattern, handlerId] = args as [number, string, string];
+    const page = getPage(pageId);
+    await page.route(pattern, async (route) => {
+      // Serialize request data for main thread
+      const requestData = {
+        url: route.request.url(),
+        method: route.request.method(),
+        headers: route.request.headers(),
+        postData: await route.request.postData(),
+      };
+
+      // Invoke handler on main thread and get decision
+      const decision = await invokeMainThread(handlerId, requestData) as any;
+
+      // Apply decision (default: continue)
+      if (!decision || decision.action === 'continue') {
+        const overrides: Record<string, unknown> = {};
+        if (decision?.url) overrides.url = decision.url;
+        if (decision?.method) overrides.method = decision.method;
+        if (decision?.headers) overrides.headers = decision.headers;
+        if (decision?.postData) overrides.postData = decision.postData;
+        await route.continue(Object.keys(overrides).length > 0 ? overrides as any : undefined);
+      } else if (decision.action === 'fulfill') {
+        await route.fulfill({
+          status: decision.status,
+          headers: decision.headers,
+          contentType: decision.contentType,
+          body: decision.body,
+        });
+      } else if (decision.action === 'abort') {
+        await route.abort();
+      }
+    });
+    return { success: true };
+  },
+
   'page.unroute': async (args) => {
     const [pageId, pattern] = args as [number, string];
     await getPage(pageId).unroute(pattern);
@@ -472,6 +543,30 @@ const handlers: Record<string, Handler> = {
         dialog.accept().catch(() => {});
       } else {
         dialog.dismiss().catch(() => {});
+      }
+    });
+    return { success: true };
+  },
+
+  'page.onDialogWithCallback': async (args) => {
+    const [pageId, handlerId] = args as [number, string];
+    const page = getPage(pageId);
+    page.onDialog(async (dialog) => {
+      // Serialize dialog data for main thread
+      const dialogData = {
+        type: dialog.type(),
+        message: dialog.message(),
+        defaultValue: dialog.defaultValue(),
+      };
+
+      // Invoke handler on main thread and get decision
+      const decision = await invokeMainThread(handlerId, dialogData) as any;
+
+      // Apply decision (default: dismiss)
+      if (!decision || decision.action === 'dismiss') {
+        await dialog.dismiss();
+      } else if (decision.action === 'accept') {
+        await dialog.accept(decision.promptText);
       }
     });
     return { success: true };

@@ -553,6 +553,196 @@ describe('Sync API: Dialog auto-handling', () => {
   });
 });
 
+describe('Sync API: Route handler callback', () => {
+  let bro;
+  before(() => { bro = browser.launch({ headless: true }); });
+  after(() => { bro.close(); });
+
+  test('route handler can fulfill with custom response', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/fetch`);
+    vibe.route('**/api/data', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'mocked', count: 99 }),
+      });
+    });
+    vibe.evaluate('doFetch()');
+    vibe.waitFor('#result');
+    // Give the fetch a moment to complete
+    vibe.wait(200);
+    const text = vibe.find('#result').text();
+    const data = JSON.parse(text);
+    assert.strictEqual(data.message, 'mocked');
+    assert.strictEqual(data.count, 99);
+  });
+
+  test('route handler can inspect request properties', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/fetch`);
+    let capturedUrl = '';
+    let capturedMethod = '';
+    vibe.route('**/api/data', (route) => {
+      capturedUrl = route.request.url;
+      capturedMethod = route.request.method;
+      route.continue();
+    });
+    vibe.evaluate('doFetch()');
+    vibe.wait(200);
+    assert.ok(capturedUrl.includes('/api/data'), 'Should capture URL');
+    assert.strictEqual(capturedMethod, 'GET');
+  });
+
+  test('route handler can abort request', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/fetch`);
+    vibe.route('**/api/data', (route) => {
+      route.abort();
+    });
+    // fetch will fail — check that it doesn't hang
+    vibe.evaluate('doFetch().catch(e => { document.getElementById("result").textContent = "ABORTED"; })');
+    vibe.wait(200);
+    const text = vibe.find('#result').text();
+    assert.strictEqual(text, 'ABORTED');
+  });
+
+  test('route handler defaults to continue if no action called', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/fetch`);
+    vibe.route('**/api/data', () => {
+      // No action — should default to continue
+    });
+    vibe.evaluate('doFetch()');
+    vibe.wait(200);
+    const text = vibe.find('#result').text();
+    const data = JSON.parse(text);
+    assert.strictEqual(data.message, 'real data');
+  });
+
+  test('static route actions still work alongside handler routes', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/fetch`);
+    // Static action (unchanged API)
+    vibe.route('**/api/data', { status: 200, body: '{"static":true}' });
+    vibe.evaluate('doFetch()');
+    vibe.wait(200);
+    const text = vibe.find('#result').text();
+    const data = JSON.parse(text);
+    assert.strictEqual(data.static, true);
+  });
+
+  test('unroute removes handler route', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/fetch`);
+    vibe.route('**/api/data', (route) => {
+      route.fulfill({ status: 200, body: '{"handler":"active"}' });
+    });
+    vibe.evaluate('doFetch()');
+    vibe.wait(200);
+    let text = vibe.find('#result').text();
+    assert.strictEqual(JSON.parse(text).handler, 'active');
+
+    // Remove the route
+    vibe.unroute('**/api/data');
+    vibe.evaluate('doFetch()');
+    vibe.wait(200);
+    text = vibe.find('#result').text();
+    const data = JSON.parse(text);
+    assert.strictEqual(data.message, 'real data', 'Should get real data after unroute');
+  });
+});
+
+describe('Sync API: Dialog handler callback', () => {
+  let bro;
+  before(() => { bro = browser.launch({ headless: true }); });
+  after(() => { bro.close(); });
+
+  test('dialog handler can accept alerts', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/prompt`);
+    let capturedMessage = '';
+    let capturedType = '';
+    vibe.onDialog((dialog) => {
+      capturedType = dialog.type();
+      capturedMessage = dialog.message();
+      dialog.accept();
+    });
+    vibe.find('#alert-btn').click();
+    assert.strictEqual(capturedType, 'alert');
+    assert.strictEqual(capturedMessage, 'hello');
+  });
+
+  test('dialog handler can dismiss confirms', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/prompt`);
+    vibe.onDialog((dialog) => {
+      dialog.dismiss();
+    });
+    vibe.find('#confirm-btn').click();
+    const text = vibe.find('#result').text();
+    assert.strictEqual(text, 'false');
+  });
+
+  test('dialog handler can accept confirms', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/prompt`);
+    vibe.onDialog((dialog) => {
+      dialog.accept();
+    });
+    vibe.find('#confirm-btn').click();
+    const text = vibe.find('#result').text();
+    assert.strictEqual(text, 'true');
+  });
+
+  test('dialog handler can provide prompt text', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/prompt`);
+    vibe.onDialog((dialog) => {
+      if (dialog.type() === 'prompt') {
+        dialog.accept('Claude');
+      } else {
+        dialog.dismiss();
+      }
+    });
+    vibe.find('#prompt-btn').click();
+    const text = vibe.find('#result').text();
+    assert.strictEqual(text, 'Claude');
+  });
+
+  test('dialog handler defaults to dismiss if no action called', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/prompt`);
+    vibe.onDialog(() => {
+      // No action — default dismiss
+    });
+    vibe.find('#confirm-btn').click();
+    const text = vibe.find('#result').text();
+    assert.strictEqual(text, 'false');
+  });
+
+  test('dialog handler can read defaultValue for prompts', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/prompt`);
+    let defaultVal = '';
+    vibe.onDialog((dialog) => {
+      defaultVal = dialog.defaultValue();
+      dialog.accept();
+    });
+    // prompt('Enter name:') has no default → empty string
+    vibe.find('#prompt-btn').click();
+    assert.strictEqual(defaultVal, '');
+  });
+
+  test('static onDialog still works', () => {
+    const vibe = bro.newPage();
+    vibe.go(`${baseURL}/prompt`);
+    vibe.onDialog('accept');
+    vibe.find('#alert-btn').click();
+    assert.ok(true, 'Static accept still works');
+  });
+});
+
 describe('Sync API: Full checkpoint', () => {
   test('Phase 8 checkpoint', () => {
     const bro = browser.launch({ headless: true });

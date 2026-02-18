@@ -3,6 +3,8 @@ import { ElementSync } from './element';
 import { ElementListSync } from './element-list';
 import { KeyboardSync, MouseSync, TouchSync } from './keyboard';
 import { ClockSync } from './clock';
+import { RouteSync, RouteRequest } from './route';
+import { DialogSync, DialogData } from './dialog';
 import { ElementInfo, SelectorOptions } from '../element';
 import { A11yNode, ScreenshotOptions, FindOptions } from '../page';
 
@@ -16,6 +18,10 @@ export class PageSync {
   readonly mouse: MouseSync;
   readonly touch: TouchSync;
   readonly clock: ClockSync;
+
+  private _nextHandlerId = 0;
+  private _routeHandlerIds = new Map<string, string>(); // pattern → handlerId
+  private _dialogHandlerId: string | null = null;
 
   constructor(bridge: SyncBridge, pageId: number) {
     this._bridge = bridge;
@@ -212,11 +218,27 @@ export class PageSync {
 
   // --- Network ---
 
-  route(pattern: string, action: 'continue' | 'abort' | { status?: number; body?: string; headers?: Record<string, string> }): void {
-    this._bridge.call('page.route', [this._pageId, pattern, action]);
+  route(pattern: string, action: 'continue' | 'abort' | { status?: number; body?: string; headers?: Record<string, string> } | ((route: RouteSync) => void)): void {
+    if (typeof action === 'function') {
+      const handlerId = `route_${this._pageId}_${this._nextHandlerId++}`;
+      this._bridge.registerHandler(handlerId, (data: RouteRequest) => {
+        const route = new RouteSync(data);
+        action(route);
+        return route._decision;
+      });
+      this._routeHandlerIds.set(pattern, handlerId);
+      this._bridge.call('page.routeWithCallback', [this._pageId, pattern, handlerId]);
+    } else {
+      this._bridge.call('page.route', [this._pageId, pattern, action]);
+    }
   }
 
   unroute(pattern: string): void {
+    const handlerId = this._routeHandlerIds.get(pattern);
+    if (handlerId) {
+      this._bridge.unregisterHandler(handlerId);
+      this._routeHandlerIds.delete(pattern);
+    }
     this._bridge.call('page.unroute', [this._pageId, pattern]);
   }
 
@@ -232,10 +254,24 @@ export class PageSync {
     return this._bridge.call('page.waitForResponse', [this._pageId, pattern, options]);
   }
 
-  // --- Events (simplified) ---
+  // --- Events ---
 
-  onDialog(action: 'accept' | 'dismiss'): void {
-    this._bridge.call('page.onDialog', [this._pageId, action]);
+  onDialog(action: 'accept' | 'dismiss' | ((dialog: DialogSync) => void)): void {
+    if (typeof action === 'function') {
+      const handlerId = `dialog_${this._pageId}_${this._nextHandlerId++}`;
+      this._bridge.registerHandler(handlerId, (data: DialogData) => {
+        const dialog = new DialogSync(data);
+        action(dialog);
+        return dialog._decision;
+      });
+      if (this._dialogHandlerId) {
+        this._bridge.unregisterHandler(this._dialogHandlerId);
+      }
+      this._dialogHandlerId = handlerId;
+      this._bridge.call('page.onDialogWithCallback', [this._pageId, handlerId]);
+    } else {
+      this._bridge.call('page.onDialog', [this._pageId, action]);
+    }
   }
 
   onConsole(mode: 'collect'): void {
@@ -257,6 +293,19 @@ export class PageSync {
   }
 
   removeAllListeners(event?: 'request' | 'response' | 'dialog' | 'console' | 'error'): void {
+    // Clean up callback handlers
+    if (!event || event === 'dialog') {
+      if (this._dialogHandlerId) {
+        this._bridge.unregisterHandler(this._dialogHandlerId);
+        this._dialogHandlerId = null;
+      }
+    }
+    if (!event || event === 'request') {
+      for (const [, handlerId] of this._routeHandlerIds) {
+        this._bridge.unregisterHandler(handlerId);
+      }
+      this._routeHandlerIds.clear();
+    }
     this._bridge.call('page.removeAllListeners', [this._pageId, event]);
   }
 }

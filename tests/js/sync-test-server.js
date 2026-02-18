@@ -75,6 +75,24 @@ const CLOCK_HTML = `<html><head><title>Clock</title></head><body>
   <div id="time"></div>
 </body></html>`;
 
+const PROMPT_HTML = `<html><head><title>Prompt</title></head><body>
+  <button id="prompt-btn" onclick="document.getElementById('result').textContent = prompt('Enter name:')">Prompt</button>
+  <button id="confirm-btn" onclick="document.getElementById('result').textContent = confirm('sure?')">Confirm</button>
+  <button id="alert-btn" onclick="alert('hello')">Alert</button>
+  <div id="result"></div>
+</body></html>`;
+
+const FETCH_HTML = `<html><head><title>Fetch</title></head><body>
+  <div id="result"></div>
+  <script>
+    async function doFetch() {
+      const res = await fetch('/api/data');
+      const json = await res.json();
+      document.getElementById('result').textContent = JSON.stringify(json);
+    }
+  </script>
+</body></html>`;
+
 const routes = {
   '/': HOME_HTML,
   '/subpage': SUBPAGE_HTML,
@@ -84,9 +102,16 @@ const routes = {
   '/eval': EVAL_HTML,
   '/dialog': DIALOG_HTML,
   '/clock': CLOCK_HTML,
+  '/prompt': PROMPT_HTML,
+  '/fetch': FETCH_HTML,
 };
 
 const server = http.createServer((req, res) => {
+  if (req.url === '/api/data') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ message: 'real data', count: 42 }));
+    return;
+  }
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.end(routes[req.url] || HOME_HTML);
 });
