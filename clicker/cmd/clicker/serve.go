@@ -44,7 +44,7 @@ func newServeCmd() *cobra.Command {
 					os.Exit(1)
 				}
 
-				fmt.Printf("Server listening on ws://localhost:%d\n", port)
+				fmt.Printf("Server listening on ws://localhost:%d\n", server.Port())
 				fmt.Println("Press Ctrl+C to stop...")
 
 				// Wait for signal

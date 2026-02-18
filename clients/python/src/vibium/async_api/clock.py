@@ -2,10 +2,25 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..client import BiDiClient
+
+
+def _normalize_time(time: Union[int, str]) -> int:
+    """Convert a time value to epoch milliseconds.
+
+    Accepts an integer (epoch ms) or an ISO 8601 date string.
+    """
+    if isinstance(time, int):
+        return time
+    if isinstance(time, float):
+        return int(time)
+    # Parse ISO string → epoch ms
+    dt = datetime.fromisoformat(time.replace("Z", "+00:00"))
+    return int(dt.timestamp() * 1000)
 
 
 class Clock:
@@ -23,7 +38,7 @@ class Clock:
         """Install fake clock, overriding Date, setTimeout, setInterval, etc."""
         params: Dict[str, Any] = {"context": self._context_id}
         if time is not None:
-            params["time"] = time
+            params["time"] = _normalize_time(time)
         if timezone is not None:
             params["timezone"] = timezone
         await self._client.send("vibium:clock.install", params)
@@ -46,7 +61,7 @@ class Clock:
         """Jump to a specific time and pause."""
         await self._client.send("vibium:clock.pauseAt", {
             "context": self._context_id,
-            "time": time,
+            "time": _normalize_time(time),
         })
 
     async def resume(self) -> None:
@@ -59,14 +74,14 @@ class Clock:
         """Freeze Date.now() at a value permanently. Timers still run."""
         await self._client.send("vibium:clock.setFixedTime", {
             "context": self._context_id,
-            "time": time,
+            "time": _normalize_time(time),
         })
 
     async def set_system_time(self, time: Union[int, str]) -> None:
         """Set Date.now() without triggering timers."""
         await self._client.send("vibium:clock.setSystemTime", {
             "context": self._context_id,
-            "time": time,
+            "time": _normalize_time(time),
         })
 
     async def set_timezone(self, timezone: str) -> None:

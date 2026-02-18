@@ -175,8 +175,9 @@ class VibiumProcess:
         args = [binary, "serve"]
         if headless:
             args.append("--headless")
-        if port:
-            args.extend(["--port", str(port)])
+        # Use port 0 (OS-assigned random port) by default to avoid conflicts
+        # when multiple browser instances run concurrently
+        args.extend(["--port", str(port if port is not None else 0)])
 
         # Start the process
         process = subprocess.Popen(
@@ -187,17 +188,20 @@ class VibiumProcess:
         )
 
         # Read the port from stdout
-        # Vibium prints "Listening on ws://localhost:PORT"
-        actual_port = port or 9515
+        # Vibium prints "Server listening on ws://localhost:PORT"
+        actual_port = port or 0
 
         if process.stdout:
-            line = process.stdout.readline()
-            if "Listening on" in line:
-                # Extract port from "Listening on ws://localhost:9515"
-                try:
-                    actual_port = int(line.strip().split(":")[-1])
-                except (ValueError, IndexError):
-                    pass
+            # First line: "Starting Clicker proxy server on port ..."
+            # Second line: "Server listening on ws://localhost:PORT"
+            for _ in range(2):
+                line = process.stdout.readline()
+                if "listening on" in line.lower():
+                    try:
+                        actual_port = int(line.strip().split(":")[-1])
+                    except (ValueError, IndexError):
+                        pass
+                    break
 
         # Give it a moment to start
         await asyncio.sleep(0.1)

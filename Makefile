@@ -109,8 +109,8 @@ deps:
 serve: build-go
 	./clicker/bin/vibium$(EXE) serve
 
-# Run all tests
-test: build install-browser test-cli test-js test-mcp
+# Build everything and run all tests: make test
+test: build install-browser test-cli test-js test-mcp test-python
 
 # Run CLI tests (tests the vibium binary directly)
 # Process tests run separately with --test-concurrency=1 to avoid interference
@@ -163,13 +163,14 @@ test-daemon: build-go
 	node --test --test-concurrency=1 tests/daemon/lifecycle.test.js tests/daemon/concurrency.test.js
 
 # Run Python client tests
-test-python: package-python
+test-python: build install-browser
 	@echo "━━━ Python Client Tests ━━━"
 	@cd clients/python && \
 		if [ ! -d ".venv" ]; then python3 -m venv .venv; fi && \
 		. .venv/bin/activate && \
-		pip install -q -e ../../packages/python/vibium_darwin_arm64 -e . && \
-		python tests/test_basic.py
+		pip install -q -e ../../packages/python/vibium_darwin_arm64 -e ".[test]" && \
+		VIBIUM_BIN_PATH=$(CURDIR)/clicker/bin/vibium$(EXE) \
+		python -m pytest ../../tests/py/ -v --tb=short -x
 
 # Kill zombie Chrome and chromedriver processes
 double-tap:
@@ -281,7 +282,7 @@ help:
 	@echo "  make package-python        - Build Python wheels only"
 	@echo ""
 	@echo "Test:"
-	@echo "  make test                  - Run all tests (CLI + JS + MCP)"
+	@echo "  make test                  - Build everything and run all tests (CLI + JS + MCP + Python)"
 	@echo "  make test-cli              - Run CLI tests only"
 	@echo "  make test-js               - Run JS library tests only"
 	@echo "  make test-mcp              - Run MCP server tests only"
