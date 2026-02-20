@@ -199,15 +199,15 @@ const el = await vibe.find("the blue submit button");
 
 ---
 
-## Firefox & Edge Support
+## Firefox, Edge, and Safari Support
 
-**What:** Support browsers beyond Chrome.
+**What:** Support browsers beyond Chrome (Firefox, Edge, and Safari).
 
 **Why deferred:** Chrome covers 90%+ of use cases. BiDi implementations vary across browsers.
 
-**When to build:** When users explicitly need Firefox (privacy testing) or Edge (enterprise).
+**When to build:** When users explicitly need Firefox (privacy testing), Edge (enterprise), or Safari (macOS/WebKit coverage).
 
-**Estimated effort:** 1 week per browser
+**Estimated effort:** 1-2 weeks per browser (Safari likely needs additional WebKit-specific validation)
 
 ---
 
@@ -241,7 +241,7 @@ Based on likely user demand:
 6. **AI locators** — High value but high uncertainty
 7. **Java client** — Enterprise demand
 8. **Cortex UI** — Nice to have
-9. **Firefox/Edge** — Edge cases
+9. **Firefox/Edge/Safari** — Non-Chrome coverage on demand
 
 ---
 
