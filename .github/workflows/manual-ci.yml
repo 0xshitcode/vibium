@@ -49,21 +49,22 @@ jobs:
       - name: Run JS smoke test
         run: |
           node <<'EOF'
-          const { browser } = require('./clients/javascript/dist/sync');
-          const timeout = setTimeout(() => {
-            console.error('smoke test timed out');
-            process.exit(1);
-          }, 45000);
-          const bro = browser.launch({ headless: true });
-          try {
-            const page = bro.page();
-            page.go('data:text/html,<html><head><title>Example Smoke</title></head><body>ok</body></html>');
-            const title = page.title();
-            if (!title.includes('Example Smoke')) {
-              throw new Error(`unexpected title: ${title}`);
+          const { browser } = require('./clients/javascript/dist');
+
+          (async () => {
+            const bro = await browser.launch({ headless: true });
+            try {
+              const page = await bro.page();
+              await page.go('data:text/html,<html><head><title>Example Smoke</title></head><body>ok</body></html>');
+              const title = await page.title();
+              if (!title.includes('Example Smoke')) {
+                throw new Error(`unexpected title: ${title}`);
+              }
+            } finally {
+              await bro.close();
             }
-          } finally {
-            bro.close();
-            clearTimeout(timeout);
-          }
+          })().catch((err) => {
+            console.error(err);
+            process.exit(1);
+          });
           EOF
