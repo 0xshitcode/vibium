@@ -193,6 +193,27 @@ Try running with headless mode disabled (it's disabled by default, but just in c
 const vibe = browserSync.launch({ headless: false })
 ```
 
+### "Error: Connection closed" (especially on Windows)
+
+This usually means the browser process exited unexpectedly before the next command completed.
+
+Try this reset flow in a fresh folder:
+
+```bash
+mkdir vibium-test
+cd vibium-test
+npm init -y
+npm install vibium@latest
+```
+
+Important: install `vibium`, not `clicker`. The npm package `clicker` is unrelated.
+
+Then run your script again with debug logs enabled:
+- PowerShell: `$env:VIBIUM_DEBUG=1`
+- CMD: `set VIBIUM_DEBUG=1`
+
+If you use endpoint security/antivirus, add exclusions for `%LOCALAPPDATA%\vibium\`.
+
 ### Permission denied (Linux)
 
 You might need to install dependencies for Chrome:

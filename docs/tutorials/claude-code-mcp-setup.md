@@ -196,6 +196,18 @@ Ensure Chrome for Testing is installed:
 ./clicker/bin/vibium install
 ```
 
+If you are setting up from npm, install `vibium` (not `clicker`):
+
+```bash
+npm install vibium@latest
+```
+
+The npm package named `clicker` is unrelated and will not install Vibium's browser binary.
+
+If you see `Error: Connection closed`, run again with debug logs enabled:
+- PowerShell: `$env:VIBIUM_DEBUG=1`
+- CMD: `set VIBIUM_DEBUG=1`
+
 ### View MCP server logs
 
 Run vibium directly to see any error output. You can test the full flow by sending JSON-RPC messages to stdin:
