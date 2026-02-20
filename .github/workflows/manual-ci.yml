@@ -30,11 +30,25 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install deps
-        run: npm install
+      - name: Build vibium binary
+        run: |
+          cp skills/vibe-check/SKILL.md clicker/cmd/clicker/SKILL.md
+          VERSION="$(cat VERSION)"
+          cd clicker
+          go build -ldflags="-X main.version=${VERSION}" -o bin/vibium ./cmd/clicker
 
-      - name: Build
-        run: make build
+      - name: Build JavaScript client
+        run: |
+          cd clients/javascript
+          npm install --no-workspaces
+          npm run build
 
-      - name: JS tests
-        run: make test-js
+      - name: Install browser
+        run: ./clicker/bin/vibium install
+
+      - name: Run JS tests
+        run: |
+          node --test --test-concurrency=1 tests/js/async/async-api.test.js
+          node --test --test-concurrency=1 tests/js/async/auto-wait.test.js
+          node --test --test-concurrency=1 tests/js/sync/sync-api.test.js
+          node --test --test-concurrency=1 tests/js/async/console-error.test.js tests/js/sync/console-error.test.js
