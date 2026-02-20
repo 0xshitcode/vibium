@@ -43,28 +43,5 @@ jobs:
           npm install --no-workspaces
           npm run build
 
-      - name: Install browser
-        run: ./clicker/bin/vibium install
-
-      - name: Run JS smoke test
-        run: |
-          node <<'EOF'
-          const { browser } = require('./clients/javascript/dist');
-
-          (async () => {
-            const bro = await browser.launch({ headless: true });
-            try {
-              const page = await bro.page();
-              await page.go('data:text/html,<html><head><title>Example Smoke</title></head><body>ok</body></html>');
-              const title = await page.title();
-              if (!title.includes('Example Smoke')) {
-                throw new Error(`unexpected title: ${title}`);
-              }
-            } finally {
-              await bro.close();
-            }
-          })().catch((err) => {
-            console.error(err);
-            process.exit(1);
-          });
-          EOF
+      - name: Run Go tests
+        run: go test ./clicker/...
