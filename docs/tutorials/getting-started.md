@@ -193,6 +193,17 @@ Try running with headless mode disabled (it's disabled by default, but just in c
 const vibe = browserSync.launch({ headless: false })
 ```
 
+### Windows: "Access is denied. (0x5)" on Chrome launch
+
+If you see access/sandbox errors for a path under `%LOCALAPPDATA%\vibium\chrome-for-testing\...`:
+
+1. Delete `%LOCALAPPDATA%\vibium\chrome-for-testing\`.
+2. Re-run your script (Vibium will reinstall Chrome for Testing).
+3. Add antivirus exclusions for `%LOCALAPPDATA%\vibium\` if your endpoint security blocks unknown binaries.
+4. Enable debug logs and retry:
+   - PowerShell: `$env:VIBIUM_DEBUG=1`
+   - CMD: `set VIBIUM_DEBUG=1`
+
 ### Permission denied (Linux)
 
 You might need to install dependencies for Chrome:
