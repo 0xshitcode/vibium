@@ -44,4 +44,6 @@ jobs:
           npm run build
 
       - name: Run Go tests
-        run: go test ./clicker/...
+        run: |
+          cd clicker
+          go test ./...
