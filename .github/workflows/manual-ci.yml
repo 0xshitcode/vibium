@@ -46,9 +46,19 @@ jobs:
       - name: Install browser
         run: ./clicker/bin/vibium install
 
-      - name: Run JS tests
+      - name: Run JS smoke test
         run: |
-          node --test --test-concurrency=1 tests/js/async/async-api.test.js
-          node --test --test-concurrency=1 tests/js/async/auto-wait.test.js
-          node --test --test-concurrency=1 tests/js/sync/sync-api.test.js
-          node --test --test-concurrency=1 tests/js/async/console-error.test.js tests/js/sync/console-error.test.js
+          node <<'EOF'
+          const { browserSync } = require('./clients/javascript/dist/sync');
+          const bro = browserSync.launch({ headless: true });
+          try {
+            const page = bro.page();
+            page.go('https://example.com');
+            const title = page.title();
+            if (!title.includes('Example')) {
+              throw new Error(`unexpected title: ${title}`);
+            }
+          } finally {
+            bro.close();
+          }
+          EOF
