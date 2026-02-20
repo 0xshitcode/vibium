@@ -49,8 +49,8 @@ jobs:
       - name: Run JS smoke test
         run: |
           node <<'EOF'
-          const { browserSync } = require('./clients/javascript/dist/sync');
-          const bro = browserSync.launch({ headless: true });
+          const { browser } = require('./clients/javascript/dist/sync');
+          const bro = browser.launch({ headless: true });
           try {
             const page = bro.page();
             page.go('https://example.com');
