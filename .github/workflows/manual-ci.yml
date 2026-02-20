@@ -50,15 +50,20 @@ jobs:
         run: |
           node <<'EOF'
           const { browser } = require('./clients/javascript/dist/sync');
+          const timeout = setTimeout(() => {
+            console.error('smoke test timed out');
+            process.exit(1);
+          }, 45000);
           const bro = browser.launch({ headless: true });
           try {
             const page = bro.page();
-            page.go('https://example.com');
+            page.go('data:text/html,<html><head><title>Example Smoke</title></head><body>ok</body></html>');
             const title = page.title();
-            if (!title.includes('Example')) {
+            if (!title.includes('Example Smoke')) {
               throw new Error(`unexpected title: ${title}`);
             }
           } finally {
             bro.close();
+            clearTimeout(timeout);
           }
           EOF
